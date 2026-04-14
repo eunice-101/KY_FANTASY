@@ -1,0 +1,5 @@
+dashboard.html
+.claude/
+__pycache__/
+*.pyc
+.env

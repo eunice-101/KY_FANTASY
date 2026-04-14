@@ -1,0 +1,3 @@
+[submodule "AI_NovelGenerator"]
+	path = AI_NovelGenerator
+	url = https://github.com/YILING0013/AI_NovelGenerator.git
