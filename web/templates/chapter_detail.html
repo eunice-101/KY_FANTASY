@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>챕터 {{ number }} — KY Fantasy</title>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f4f0e8;
+    --gold: #c8a96e;
+    --crimson: #8b1a1a;
+    --mist: #e8e0d0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Serif KR', 'Noto Serif', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, var(--ink), #16213e);
+    color: var(--gold);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  header a { color: var(--gold); text-decoration: none; font-size: 0.9rem; opacity: 0.8; }
+  header a:hover { opacity: 1; }
+  header h1 { font-size: 1.2rem; }
+  .chapter-body {
+    max-width: 800px;
+    margin: 3rem auto;
+    padding: 0 2rem;
+  }
+  .chapter-num {
+    font-size: 0.85rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .chapter-content {
+    line-height: 2;
+    font-size: 1.05rem;
+    white-space: pre-wrap;
+    margin-top: 2rem;
+  }
+  .divider {
+    text-align: center;
+    color: var(--gold);
+    margin: 2rem 0;
+    font-size: 1.5rem;
+    letter-spacing: 0.5em;
+  }
+  .back-btn {
+    display: inline-block;
+    margin-top: 3rem;
+    padding: 0.5rem 1.5rem;
+    background: var(--ink);
+    color: var(--gold);
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  .back-btn:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+<header>
+  <a href="/">← 대시보드</a>
+  <h1>챕터 {{ number }}</h1>
+</header>
+<div class="chapter-body">
+  <div class="chapter-num">챕터 {{ number }}</div>
+  <div class="divider">— ⚔ —</div>
+  <div class="chapter-content">{{ content }}</div>
+  <a class="back-btn" href="/">← 대시보드로 돌아가기</a>
+</div>
+</body>
+</html>

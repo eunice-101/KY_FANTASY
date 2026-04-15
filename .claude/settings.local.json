@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"C:\\\\Users\\\\10_17\\\\Desktop\\\\KY_Fantasy\\\\webnovel-writer\" -name \"*.py\" -type f -exec wc -l {} +)",
+      "Bash(find \"C:\\\\Users\\\\10_17\\\\Desktop\\\\Fantasy\\\\AI_NovelGenerator\" -name \"*.py\" -type f -exec wc -l {} +)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\10_17\\\\Desktop\\\\KY_Fantasy\\\\.claude\\\\agents\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\10_17\\\\Desktop\\\\KY_Fantasy\\\\bible\\\\characters\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\10_17\\\\Desktop\\\\KY_Fantasy\\\\state\\\\chapter-00\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\10_17\\\\Desktop\\\\KY_Fantasy\\\\timeline\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\10_17\\\\Desktop\\\\KY_Fantasy\\\\story\\\\chapters\")",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -m pip install flask waitress python-dotenv --quiet)",
+      "Bash(python3 -m pip install flask waitress python-dotenv)",
+      "Bash(python3 web/app.py)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(cp -r state/chapter-00 state/current)",
+      "Bash(python3 -c \"from web.app import app; print\\('Flask import OK'\\)\")",
+      "Bash(curl -s http://127.0.0.1:8765/api/status)",
+      "Read(//c/Users/10_17/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/faa9089d-9efd-47cc-b2a2-ede6f5043f39/37653bcf-5817-498f-8fe4-e1b91495383c/skills/docx/scripts/office/**)",
+      "Bash(npm list:*)",
+      "Bash(npm install:*)",
+      "Bash(ls -la story/chapters/)",
+      "Bash(ls -la bible/characters/)",
+      "Bash(ls -la state/current/)",
+      "Bash(python -c 'import json; d=json.load\\(open\\('\\\\''__TRACKED_VAR__'\\\\''\\)\\); print\\(json.dumps\\(d, indent=2, ensure_ascii=False\\)[:300]\\)')",
+      "Bash(ls -la ky_engine.py)",
+      "Bash(ls -la ky_prompts.py)",
+      "Bash(ls -la integrated-design.docx)",
+      "Bash(python -c ':*)",
+      "Bash(python -c \"import json,sys,io; sys.stdout=io.TextIOWrapper\\(sys.stdout.buffer,encoding='utf-8'\\); print\\(json.dumps\\(json.load\\(open\\('planning/plot-progress.json'\\)\\),indent=2,ensure_ascii=False\\)\\)\")",
+      "Bash(python -c \"import json,sys,io; sys.stdout=io.TextIOWrapper\\(sys.stdout.buffer,encoding='utf-8'\\); print\\(json.dumps\\(json.load\\(open\\('planning/plot-progress.json',encoding='utf-8'\\)\\),indent=2,ensure_ascii=False\\)\\)\")",
+      "Bash(python3 -c \"import json; files=['planning/plot-progress.json', 'planning/subplots.json', 'planning/foreshadow.json']; [print\\(f'{f}: OK'\\) if json.load\\(open\\(f, encoding='utf-8'\\)\\) else None for f in files]\")",
+      "Bash(cat)",
+      "Read(//tmp/**)"
+    ]
+  }
+}

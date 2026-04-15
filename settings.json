@@ -1,0 +1,23 @@
+{
+  "api": {
+    "model": "claude-opus-4-6",
+    "max_tokens": 8192,
+    "timeout": 600
+  },
+  "web": {
+    "host": "127.0.0.1",
+    "port": 8765
+  },
+  "generation": {
+    "words_per_chapter": 6000,
+    "total_chapters": 25,
+    "quality_gate_max_iterations": 3,
+    "consistency_check": true
+  },
+  "storage": {
+    "novels_dir": "./story",
+    "chapters_dir": "./story/chapters",
+    "bible_dir": "./bible",
+    "state_dir": "./state"
+  }
+}

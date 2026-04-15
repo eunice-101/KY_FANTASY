@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "KY_Fantasy 웹 대시보드",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["web/app.py"],
+      "port": 8765
+    },
+    {
+      "name": "KY_Fantasy 소설 자동생성 (Claude Code)",
+      "runtimeExecutable": "claude",
+      "runtimeArgs": ["--print", "소설 자동생성을 시작합니다. CLAUDE.md의 오케스트레이터 워크플로우를 따르세요."],
+      "port": 0
+    },
+    {
+      "name": "Fantasy 대시보드 (기존 시스템)",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["C:/Users/10_17/Desktop/Fantasy/dashboard.py"],
+      "port": 0
+    },
+    {
+      "name": "Fantasy Novel Generator GUI (기존 시스템)",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["C:/Users/10_17/Desktop/Fantasy/AI_NovelGenerator/main.py"],
+      "port": 0
+    }
+  ]
+}

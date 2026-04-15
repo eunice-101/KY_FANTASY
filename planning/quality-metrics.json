@@ -1,0 +1,12 @@
+{
+  "overall_score": 0,
+  "chapters_analyzed": 0,
+  "metrics_history": [],
+  "current_mode": "표준 모드",
+  "thresholds": {
+    "excellence": 90,
+    "high_performance": 80,
+    "standard": 60,
+    "quality_focus_below": 60
+  }
+}

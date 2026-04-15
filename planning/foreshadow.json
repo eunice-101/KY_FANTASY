@@ -1,0 +1,112 @@
+{
+  "foreshadowing": [
+    {
+      "id": 1,
+      "name": "귀 뒤의 점",
+      "type": "물건",
+      "plant_chapter": 1,
+      "payoff_chapters": [4, 25],
+      "payoff_description": "Ch4: 결계 통과 시 발열 / Ch25: 은은하게 발광하며 끝",
+      "status": "미설치"
+    },
+    {
+      "id": 2,
+      "name": "옥비녀",
+      "type": "물건",
+      "plant_chapter": 2,
+      "payoff_chapters": [4, 21],
+      "payoff_description": "Ch4: 천서각 결계 열쇠 / Ch21: 궁궐 봉인 해제 열쇠",
+      "status": "미설치"
+    },
+    {
+      "id": 3,
+      "name": "대가가 따른다",
+      "type": "대사",
+      "plant_chapter": 2,
+      "payoff_chapters": [5, 14, 22],
+      "payoff_description": "반복 회수 — 천서력 사용의 대가를 체감하는 순간들",
+      "status": "미설치"
+    },
+    {
+      "id": 4,
+      "name": "손끝의 빛",
+      "type": "행동",
+      "plant_chapter": 1,
+      "payoff_chapters": [2, 5],
+      "payoff_description": "Ch2: 자각 / Ch5: 풍술 첫 시전",
+      "status": "미설치"
+    },
+    {
+      "id": 5,
+      "name": "서책 검열 칙령",
+      "type": "물건",
+      "plant_chapter": 3,
+      "payoff_chapters": [15],
+      "payoff_description": "요녀 사냥으로 연결 — 검열이 실은 천서력 기록 수색",
+      "status": "미설치"
+    },
+    {
+      "id": 6,
+      "name": "해월의 관찰",
+      "type": "행동",
+      "plant_chapter": 3,
+      "payoff_chapters": [7, 9],
+      "payoff_description": "Ch7: 윤아에게 접근 / Ch9: 정체 공개",
+      "status": "미설치"
+    },
+    {
+      "id": 7,
+      "name": "천서각 = 궁궐 지하 문양",
+      "type": "물건",
+      "plant_chapter": 4,
+      "payoff_chapters": [12],
+      "payoff_description": "동일한 고구려 수호 문양 확인 — 두 장소의 연결",
+      "status": "미설치"
+    },
+    {
+      "id": 8,
+      "name": "봉인된 문의 다섯 문양",
+      "type": "물건",
+      "plant_chapter": 5,
+      "payoff_chapters": [10, 21],
+      "payoff_description": "Ch10: 두 개 빛남 / Ch21: 부분적 합일로 해제",
+      "status": "미설치"
+    },
+    {
+      "id": 9,
+      "name": "힘은 보호를 위해",
+      "type": "대사",
+      "plant_chapter": 18,
+      "payoff_chapters": [23],
+      "payoff_description": "적아군 무차별 치유 — 주제 완성",
+      "status": "미설치"
+    },
+    {
+      "id": 10,
+      "name": "임사홍의 시선 (귀 뒤 점)",
+      "type": "행동",
+      "plant_chapter": 7,
+      "payoff_chapters": [13],
+      "payoff_description": "혈통을 인지하고 있었음이 드러남",
+      "status": "미설치"
+    },
+    {
+      "id": 11,
+      "name": "연산군의 슬픈 눈",
+      "type": "행동",
+      "plant_chapter": 12,
+      "payoff_chapters": [22],
+      "payoff_description": "최후 대면에서 인간적 마지막",
+      "status": "미설치"
+    },
+    {
+      "id": 12,
+      "name": "도윤의 입다물기",
+      "type": "행동",
+      "plant_chapter": 16,
+      "payoff_chapters": [20],
+      "payoff_description": "명술로 확인 → 구출로 회수",
+      "status": "미설치"
+    }
+  ]
+}

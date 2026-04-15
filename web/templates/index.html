@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KY Fantasy — 소설 작성 현황</title>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f4f0e8;
+    --gold: #c8a96e;
+    --crimson: #8b1a1a;
+    --jade: #2d6a4f;
+    --mist: #e8e0d0;
+    --shadow: rgba(0,0,0,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Serif KR', 'Noto Serif', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* 헤더 */
+  header {
+    background: linear-gradient(135deg, var(--ink) 0%, #16213e 100%);
+    color: var(--gold);
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 3px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '⚔';
+    position: absolute;
+    left: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    opacity: 0.3;
+  }
+  header::after {
+    content: '⚔';
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    opacity: 0.3;
+  }
+  header h1 { font-size: 2rem; letter-spacing: 0.1em; margin-bottom: 0.25rem; }
+  header .subtitle { font-size: 0.9rem; opacity: 0.7; }
+  header .novel-title {
+    font-size: 1.3rem;
+    color: #fff;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  /* 레이아웃 */
+  .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+  @media (max-width: 900px) {
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  /* 카드 */
+  .card {
+    background: #fff;
+    border: 1px solid var(--mist);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .card h2 {
+    font-size: 1rem;
+    color: var(--crimson);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--mist);
+  }
+
+  /* 진행률 바 */
+  .progress-section { margin-bottom: 2rem; }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  .progress-title { font-size: 1.1rem; font-weight: bold; }
+  .progress-pct {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--gold);
+  }
+  .progress-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--mist);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--jade), var(--gold));
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  .milestone-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+  }
+  .milestone {
+    font-size: 0.7rem;
+    color: #999;
+    text-align: center;
+  }
+  .milestone.done { color: var(--jade); font-weight: bold; }
+
+  /* 통계 숫자 */
+  .stat-big {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.25rem;
+  }
+  .stat-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+  }
+  .badge-excellent { background: #d4edda; color: #155724; }
+  .badge-high { background: #cce5ff; color: #004085; }
+  .badge-standard { background: #fff3cd; color: #856404; }
+  .badge-focus { background: #f8d7da; color: #721c24; }
+
+  /* 헬스 게이지 */
+  .health-gauge {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .health-circle {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .health-ok { background: var(--jade); }
+  .health-warn { background: #e07b39; }
+  .health-err { background: var(--crimson); }
+
+  /* 챕터 목록 */
+  .chapter-list { max-height: 400px; overflow-y: auto; }
+  .chapter-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--mist);
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .chapter-item:hover { background: var(--mist); }
+  .chapter-num {
+    font-size: 0.75rem;
+    color: var(--gold);
+    font-weight: bold;
+    min-width: 50px;
+    padding-top: 0.1rem;
+  }
+  .chapter-info { flex: 1; }
+  .chapter-preview { font-size: 0.85rem; color: #666; margin-top: 0.25rem; line-height: 1.4; }
+  .chapter-meta { font-size: 0.75rem; color: #aaa; margin-top: 0.25rem; }
+
+  /* 캐릭터 */
+  .char-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--mist);
+  }
+  .char-name { font-weight: bold; color: var(--crimson); }
+  .char-preview { font-size: 0.85rem; color: #666; margin-top: 0.25rem; }
+
+  /* 스토리 단계 */
+  .phase-badge {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    background: var(--ink);
+    color: var(--gold);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  /* 마지막 업데이트 */
+  .footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: #aaa;
+    font-size: 0.8rem;
+    border-top: 1px solid var(--mist);
+    margin-top: 2rem;
+  }
+
+  /* 자동 새로고침 표시 */
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #d4edda;
+    color: #155724;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    background: #28a745;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* 빈 상태 */
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #aaa;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚔ KY Fantasy 소설 자동화 시스템</h1>
+  <div class="novel-title">{{ progress.get('novel_title', '소설 제목 미설정') }}</div>
+  <div class="subtitle">{{ now }} 기준 &nbsp;|&nbsp; <span class="live-badge"><span class="dot"></span> LIVE</span></div>
+</header>
+
+<div class="container">
+
+  <!-- 진행률 -->
+  <div class="card progress-section">
+    <div class="progress-header">
+      <div>
+        <div class="progress-title">전체 진행률</div>
+        <div class="stat-label">{{ progress.get('completed_chapters', 0) }} / {{ progress.get('total_chapters', 30) }} 챕터 완료</div>
+      </div>
+      <div class="progress-pct">{{ completion_pct }}%</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width: {{ completion_pct }}%"></div>
+    </div>
+    <div class="milestone-row">
+      {% for m in [5, 10, 15, 20, 25, 30] %}
+        <div class="milestone {% if progress.get('milestones', {}).get('chapter_' ~ m) %}done{% endif %}">
+          {{ m }}챕터<br>{% if progress.get('milestones', {}).get('chapter_' ~ m) %}✓{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 주요 지표 3개 -->
+  <div class="grid-3">
+
+    <!-- 현재 단계 -->
+    <div class="card">
+      <h2>스토리 단계</h2>
+      <div class="stat-big">{{ progress.get('current_chapter', 1) }}챕터</div>
+      <div class="stat-label">현재 집필 중</div>
+      <div class="phase-badge">{{ progress.get('story_phase', '초기화') }}</div>
+    </div>
+
+    <!-- 품질 점수 -->
+    <div class="card">
+      <h2>품질 점수</h2>
+      <div class="stat-big">{{ quality.get('overall_score', 0) }}<span style="font-size:1rem">/100</span></div>
+      <div class="stat-label">평균 품질</div>
+      {% set mode = quality.get('current_mode', '표준 모드') %}
+      {% if '최고' in mode %}
+        <span class="stat-badge badge-excellent">{{ mode }}</span>
+      {% elif '고성능' in mode %}
+        <span class="stat-badge badge-high">{{ mode }}</span>
+      {% elif '표준' in mode %}
+        <span class="stat-badge badge-standard">{{ mode }}</span>
+      {% else %}
+        <span class="stat-badge badge-focus">{{ mode }}</span>
+      {% endif %}
+    </div>
+
+    <!-- 시스템 헬스 -->
+    <div class="card">
+      <h2>시스템 헬스</h2>
+      <div class="health-gauge">
+        {% set hs = health.get('overall_score', 100) %}
+        <div class="health-circle {% if hs >= 90 %}health-ok{% elif hs >= 70 %}health-warn{% else %}health-err{% endif %}">
+          {{ hs }}
+        </div>
+        <div>
+          <div class="stat-label">헬스 점수</div>
+          {% if health.get('issues') %}
+            <div style="color: var(--crimson); font-size: 0.8rem; margin-top: 0.5rem;">
+              ⚠ {{ health.issues | length }}개 문제 감지
+            </div>
+          {% else %}
+            <div style="color: var(--jade); font-size: 0.8rem; margin-top: 0.5rem;">✓ 정상 작동 중</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 챕터 목록 + 캐릭터 -->
+  <div class="grid-2">
+
+    <!-- 챕터 목록 -->
+    <div class="card">
+      <h2>완성된 챕터 ({{ chapters | length }}개)</h2>
+      <div class="chapter-list">
+        {% if chapters %}
+          {% for ch in chapters | reverse %}
+            <a class="chapter-item" href="/chapter/{{ ch.number }}">
+              <div class="chapter-num">챕터 {{ ch.number }}</div>
+              <div class="chapter-info">
+                <div class="chapter-preview">{{ ch.preview[:100] }}...</div>
+                <div class="chapter-meta">{{ ch.char_count | int }}자</div>
+              </div>
+            </a>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">아직 생성된 챕터가 없습니다.<br>소설 자동화 시스템을 시작하세요.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 캐릭터 -->
+    <div class="card">
+      <h2>등장인물 ({{ characters | length }}명)</h2>
+      {% if characters %}
+        {% for char in characters %}
+          <div class="char-item">
+            <div class="char-name">{{ char.name }}</div>
+            <div class="char-preview">{{ char.preview[:150] }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">캐릭터 바이블이 아직 생성되지 않았습니다.</div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- 시스템 문제 -->
+  {% if health.get('issues') %}
+  <div class="card" style="border-color: var(--crimson);">
+    <h2 style="color: var(--crimson);">⚠ 시스템 문제</h2>
+    {% for issue in health.issues %}
+      <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--mist); font-size: 0.9rem;">{{ issue }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+<div class="footer">
+  KY Fantasy 소설 자동화 시스템 &nbsp;|&nbsp; Claude Opus 4.6 &nbsp;|&nbsp;
+  마지막 업데이트: {{ progress.get('last_updated', '-') }} &nbsp;|&nbsp;
+  <a href="/api/status" style="color: var(--gold);">API 상태</a>
+</div>
+
+<script>
+  // 30초마다 자동 새로고침
+  setTimeout(() => location.reload(), 30000);
+</script>
+
+</body>
+</html>

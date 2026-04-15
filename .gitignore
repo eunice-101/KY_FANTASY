@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.env
+
+# Node
+node_modules/
+
+# External repos (cloned references, not our code)
+Claude-Code-Novel-Writer/
+Claude-Book/
+webnovel-writer/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Claude context
+.claude/context-injection.txt
+
+# Large files
+*.docx
