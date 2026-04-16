@@ -16,7 +16,7 @@
       "plant_chapter": 2,
       "payoff_chapters": [4, 21],
       "payoff_description": "Ch4: 천서각 결계 열쇠 / Ch21: 궁궐 봉인 해제 열쇠",
-      "status": "미설치"
+      "status": "설치완료"
     },
     {
       "id": 3,
@@ -25,7 +25,7 @@
       "plant_chapter": 2,
       "payoff_chapters": [5, 14, 22],
       "payoff_description": "반복 회수 — 천서력 사용의 대가를 체감하는 순간들",
-      "status": "미설치"
+      "status": "설치완료"
     },
     {
       "id": 4,

@@ -16,6 +16,23 @@
         "continuity": "통과",
         "beat_sheet_coverage": "11/11"
       }
+    },
+    "2": {
+      "title": "할머니의 상자",
+      "status": "초안 완료",
+      "word_count": 6768,
+      "quality_gate": "통과 (1차)",
+      "iterations": 1,
+      "date_created": "2026-04-16",
+      "beat_sheet_covered": true,
+      "foreshadow_planted": ["옥비녀 상세묘사", "대가가 따른다"],
+      "hook": "윤아의 손끝에서 빛 — 감응의 시작, 두루마리를 다시 만지고 싶은 충동",
+      "quality_scores": {
+        "style": "통과 (대화비율 20.5% — 계시장면 특성상 허용)",
+        "character_consistency": "통과",
+        "continuity": "통과",
+        "beat_sheet_coverage": "10/10"
+      }
     }
   }
 }
