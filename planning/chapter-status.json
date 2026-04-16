@@ -1,3 +1,21 @@
 {
-  "chapters": {}
+  "chapters": {
+    "1": {
+      "title": "담 너머의 글",
+      "status": "품질검증 통과",
+      "word_count": 5138,
+      "quality_gate": "통과 (2차 수정)",
+      "iterations": 2,
+      "date_created": "2026-04-16",
+      "beat_sheet_covered": true,
+      "foreshadow_planted": ["귀 뒤의 점", "손끝의 빛", "옥비녀"],
+      "hook": "할머니: 오늘 밤, 너에게 보여줄 것이 있다",
+      "quality_scores": {
+        "style": "통과",
+        "character_consistency": "통과",
+        "continuity": "통과",
+        "beat_sheet_coverage": "11/11"
+      }
+    }
+  }
 }

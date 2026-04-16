@@ -7,7 +7,7 @@
       "plant_chapter": 1,
       "payoff_chapters": [4, 25],
       "payoff_description": "Ch4: 결계 통과 시 발열 / Ch25: 은은하게 발광하며 끝",
-      "status": "미설치"
+      "status": "설치완료"
     },
     {
       "id": 2,
@@ -34,7 +34,7 @@
       "plant_chapter": 1,
       "payoff_chapters": [2, 5],
       "payoff_description": "Ch2: 자각 / Ch5: 풍술 첫 시전",
-      "status": "미설치"
+      "status": "설치완료"
     },
     {
       "id": 5,
