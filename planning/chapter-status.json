@@ -50,6 +50,24 @@
         "continuity": "통과 (배즙 시간선 수정 완료)",
         "beat_sheet_coverage": "7/7"
       }
+    },
+    "4": {
+      "title": "북한산의 결계",
+      "status": "품질검증 통과",
+      "word_count": 7200,
+      "quality_gate": "통과 (1차 수정)",
+      "iterations": 1,
+      "date_created": "2026-04-17",
+      "beat_sheet_covered": true,
+      "foreshadow_planted": ["고구려 수호 문양 (복선 #7)"],
+      "foreshadow_retrieved": ["귀 뒤의 점 발열 (복선 #1)", "옥비녀 결계 열쇠 (복선 #2 1차)"],
+      "hook": "기다렸다. 서씨 가문의 아이.",
+      "quality_scores": {
+        "style": "통과 (대화 비율·뜨거 반복 수정 후)",
+        "character_consistency": "통과",
+        "continuity": "통과",
+        "beat_sheet_coverage": "6/6"
+      }
     }
   }
 }

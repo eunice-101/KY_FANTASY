@@ -7,7 +7,8 @@
       "plant_chapter": 1,
       "payoff_chapters": [4, 25],
       "payoff_description": "Ch4: 결계 통과 시 발열 / Ch25: 은은하게 발광하며 끝",
-      "status": "설치완료"
+      "status": "설치완료",
+      "payoff_note": "Ch4 비트3에서 1차 회수 완료: 북한산 중턱에서 귀 뒤 발열. 나침반 역할로 결계 위치 탐지. 결계 개방 순간 최고 발열."
     },
     {
       "id": 2,
@@ -16,7 +17,8 @@
       "plant_chapter": 2,
       "payoff_chapters": [4, 21],
       "payoff_description": "Ch4: 천서각 결계 열쇠 / Ch21: 궁궐 봉인 해제 열쇠",
-      "status": "설치완료"
+      "status": "설치완료",
+      "payoff_note": "Ch4 비트4에서 1차 회수 완료: 비녀를 손에 쥔 순간 청백색 빛 발현. 비녀 끝을 결계에 내밀자 바위 문양이 빛으로 차오르며 결계 개방. 석대 옆면에 비녀 굵기의 홈 발견(아직 미사용 — 2차 회수 Ch5 예정)."
     },
     {
       "id": 3,
@@ -63,7 +65,8 @@
       "plant_chapter": 4,
       "payoff_chapters": [12],
       "payoff_description": "동일한 고구려 수호 문양 확인 — 두 장소의 연결",
-      "status": "미설치"
+      "status": "설치완료",
+      "plant_note": "Ch4 비트5: 천서각 내벽에 고구려 수호 문양(동그라미 안 날개 편 새, 발톱에 구름 문양, 네 방향 선과 천서 문자) 확인. 두루마리 끝 부분의 같은 문양과 연결. Ch12 궁궐 지하에서 같은 문양 발견으로 회수 예정."
     },
     {
       "id": 8,
