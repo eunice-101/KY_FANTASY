@@ -33,6 +33,23 @@
         "continuity": "통과",
         "beat_sheet_coverage": "10/10"
       }
+    },
+    "3": {
+      "title": "시장의 소문",
+      "status": "품질검증 통과",
+      "word_count": 6953,
+      "quality_gate": "통과 (1차 수정)",
+      "iterations": 1,
+      "date_created": "2026-04-17",
+      "beat_sheet_covered": true,
+      "foreshadow_planted": ["서책 검열 칙령", "해월의 관찰"],
+      "hook": "북한산 청백색 빛 목격담 — 같은 색이었다",
+      "quality_scores": {
+        "style": "통과 (청각+대가 보완 후 3감각 충족)",
+        "character_consistency": "통과",
+        "continuity": "통과 (배즙 시간선 수정 완료)",
+        "beat_sheet_coverage": "7/7"
+      }
     }
   }
 }

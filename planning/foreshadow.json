@@ -43,7 +43,8 @@
       "plant_chapter": 3,
       "payoff_chapters": [15],
       "payoff_description": "요녀 사냥으로 연결 — 검열이 실은 천서력 기록 수색",
-      "status": "미설치"
+      "status": "설치완료",
+      "plant_note": "Ch3 비트3: 시장 게시판에 포졸이 칙령을 못 박음. 양반 서책 등록 의무화."
     },
     {
       "id": 6,
@@ -52,7 +53,8 @@
       "plant_chapter": 3,
       "payoff_chapters": [7, 9],
       "payoff_description": "Ch7: 윤아에게 접근 / Ch9: 정체 공개",
-      "status": "미설치"
+      "status": "설치완료",
+      "plant_note": "Ch3 비트4: 비단골목에서 이름 미공개로 등장. 부채 뒤에서 귀 뒤 점 확인. 정체 미공개."
     },
     {
       "id": 7,
