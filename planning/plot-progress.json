@@ -1,13 +1,13 @@
 {
   "novel_title": "천서의 아이",
   "total_chapters": 25,
-  "completed_chapters": 4,
-  "current_chapter": 5,
+  "completed_chapters": 5,
+  "current_chapter": 6,
   "story_phase": "2막 — 모험의 부름",
   "status": "집필 중",
   "last_updated": "2026-04-17",
   "milestones": {
-    "chapter_5": false,
+    "chapter_5": true,
     "chapter_10": false,
     "chapter_15": false,
     "chapter_20": false,

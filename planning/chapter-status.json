@@ -68,6 +68,33 @@
         "continuity": "통과",
         "beat_sheet_coverage": "6/6"
       }
+    },
+    "5": {
+      "title": "천서각의 비밀",
+      "status": "품질검증 통과",
+      "word_count": 5700,
+      "quality_gate": "통과 (1차 수정)",
+      "iterations": 1,
+      "date_created": "2026-04-17",
+      "beat_sheet_covered": true,
+      "foreshadow_planted": ["봉인된 문의 다섯 문양 (복선 #8)"],
+      "foreshadow_retrieved": ["옥비녀 석대 홈 꽂기 (복선 #2 2차)", "대가가 따른다 (복선 #3 1차)", "손끝의 빛 (복선 #4 2차)"],
+      "hook": "손끝이 먹먹하다. 아직도.",
+      "quality_scores": {
+        "style": "통과 (반복어 수정 후)",
+        "character_consistency": "통과",
+        "continuity": "통과",
+        "beat_sheet_coverage": "6/6"
+      },
+      "beat_count": 6,
+      "key_events": [
+        "미지 인물 첫 대면 — 천서각 지킴이 공개, 정체 유보",
+        "옥비녀 석대 홈 꽂기 → 봉인된 문 등장, 다섯 문양 중 두 개 빛남",
+        "천서력 교육 시작 + 도윤 배제 ('혈통이 없는 자에게는 가르칠 것이 없다')",
+        "첫 천서문 시전 성공 + 코피 + 손끝 냉기",
+        "퇴장 — 할머니의 기다림 언급, 도윤의 침묵",
+        "귀환 — 도윤의 소외감 표면화, Ch6 훅"
+      ]
     }
   }
 }
