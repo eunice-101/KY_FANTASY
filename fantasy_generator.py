@@ -121,6 +121,33 @@ def _get_novel_dir() -> Path | None:
     return None
 
 
+def _ensure_setup():
+    """filepath가 미설정이면 초기 설정 마법사를 실행합니다."""
+    if _get_novel_dir() is not None:
+        return
+
+    default = str(Path.home() / "Documents" / "KY_FANTASY")
+    print("\n" + "─" * 50)
+    print("  초기 설정: 소설 저장 경로가 설정되지 않았습니다.")
+    print(f"  대시보드가 데이터를 읽으려면 경로 설정이 필요합니다.")
+    print(f"  기본값: {default}")
+    fp = input(f"  경로 입력 (엔터 = 기본값 사용): ").strip() or default
+    fp = str(Path(fp).expanduser().resolve())
+
+    try:
+        Path(fp).mkdir(parents=True, exist_ok=True)
+        with open(CONFIG_PATH, encoding="utf-8") as f:
+            cfg = json.load(f)
+        cfg.setdefault("other_params", {})["filepath"] = fp
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+        print(f"  저장 완료: {fp}")
+        logging.info(f"초기 설정 완료: filepath={fp}")
+    except Exception as e:
+        print(f"  설정 저장 실패: {e}")
+    print("─" * 50 + "\n")
+
+
 def _sync_config(plot: dict):
     """생성된 플롯 정보를 AI_NovelGenerator config.json에 반영합니다."""
     try:
@@ -141,6 +168,8 @@ def _sync_to_novel_dir(project: dict):
     """생성된 데이터를 AI_NovelGenerator 파일 구조로 동기화합니다."""
     novel_dir = _get_novel_dir()
     if not novel_dir:
+        print("  경고: 저장 경로 미설정 — 대시보드에 반영되지 않습니다.")
+        print("  해결: fantasy_generator.py 실행 후 초기 설정을 완료하세요.")
         return
     novel_dir.mkdir(parents=True, exist_ok=True)
 
@@ -662,6 +691,7 @@ def print_menu(project: dict):
 
 
 def main():
+    _ensure_setup()
     project = {}
 
     saved = load_project()
@@ -787,6 +817,8 @@ def _parse_args():
 
 def _cli(args):
     """비대화형 CLI 모드."""
+    if args.cmd != "status":
+        _ensure_setup()
     project = load_project() or {}
 
     if args.cmd == "quick":
