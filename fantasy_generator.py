@@ -4,9 +4,11 @@ Claude API를 사용하여 세계관, 캐릭터, 플롯, 챕터를 자동 생성
 """
 
 import anthropic
+import argparse
 import json
 import os
 import re
+import sys
 import time
 from pathlib import Path
 from datetime import datetime
@@ -744,5 +746,79 @@ def main():
             print("  올바른 번호를 입력하세요.")
 
 
+def _parse_args():
+    p = argparse.ArgumentParser(description="판타지 소설 AI 생성기")
+    sub = p.add_subparsers(dest="cmd")
+
+    q = sub.add_parser("quick", help="원클릭 자동 생성")
+    q.add_argument("theme", nargs="?", default="", help="소설 테마")
+    q.add_argument("--roles", default="주인공,악당", help="캐릭터 역할 (쉼표 구분)")
+    q.add_argument("--no-chapters", action="store_true", help="챕터 작성 건너뜀")
+
+    wc = sub.add_parser("chapter", help="특정 챕터 작성")
+    wc.add_argument("num", type=int, help="챕터 번호")
+
+    sub.add_parser("all-chapters", help="전체 챕터 자동 작성")
+    sub.add_parser("export", help="소설 .txt 내보내기")
+    sub.add_parser("status", help="현재 프로젝트 상태 출력")
+
+    return p.parse_args()
+
+
+def _cli(args):
+    """비대화형 CLI 모드."""
+    project = load_project() or {}
+
+    if args.cmd == "quick":
+        roles = [r.strip() for r in args.roles.split(",")]
+        print(f"[quick] 테마: '{args.theme or '자동'}' / 캐릭터: {roles}")
+        project["world"] = generate_world(args.theme)
+        save_project(project)
+        project["characters"] = []
+        for role in roles:
+            project["characters"].append(generate_character(project["world"], role))
+            save_project(project)
+        project["plot"] = generate_plot(project["world"], project["characters"])
+        save_project(project)
+        if not args.no_chapters:
+            write_all_chapters(project)
+
+    elif args.cmd == "chapter":
+        if "plot" not in project:
+            print("오류: 플롯이 없습니다. 먼저 quick 또는 대화형 메뉴로 플롯을 생성하세요.")
+            sys.exit(1)
+        content = write_chapter(project["world"], project["characters"], project["plot"], args.num)
+        if content:
+            project.setdefault("chapters", {})[str(args.num)] = content
+            save_project(project)
+
+    elif args.cmd == "all-chapters":
+        if "plot" not in project:
+            print("오류: 플롯이 없습니다.")
+            sys.exit(1)
+        write_all_chapters(project)
+
+    elif args.cmd == "export":
+        if not project.get("chapters"):
+            print("오류: 작성된 챕터가 없습니다.")
+            sys.exit(1)
+        export_novel(project)
+
+    elif args.cmd == "status":
+        title  = project.get("plot", {}).get("title", "없음")
+        worlds = "O" if "world" in project else "X"
+        chars  = len(project.get("characters", []))
+        plot   = "O" if "plot" in project else "X"
+        chs    = len(project.get("chapters", {}))
+        total  = project.get("plot", {}).get("total_chapters", "?")
+        print(f"제목: {title}")
+        print(f"세계관: {worlds}  캐릭터: {chars}명  플롯: {plot}")
+        print(f"챕터: {chs} / {total}")
+
+
 if __name__ == "__main__":
-    main()
+    args = _parse_args()
+    if args.cmd:
+        _cli(args)
+    else:
+        main()
