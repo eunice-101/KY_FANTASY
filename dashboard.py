@@ -244,7 +244,10 @@ def generate_html(data, watch: bool = False):
     est_tot  = avg_w * target if avg_w and target else 0
 
     ch_pct, ch_prog_html = progress_bar(written, target)
-    word_target = data["word_per_chapter"] * target if data["word_per_chapter"] and target else est_tot
+    wpch_cfg = data["word_per_chapter"]
+    # config에 미설정 시 실제 평균으로 추정
+    wpch_est = avg_w if (not wpch_cfg and avg_w) else wpch_cfg
+    word_target = wpch_est * target if wpch_est and target else est_tot
     w_pct,  w_prog_html  = progress_bar(total_w, word_target)
 
     # 챕터 표
@@ -308,7 +311,7 @@ def generate_html(data, watch: bool = False):
     c_data   = json.dumps([ch["word_count"] for ch in chapters])
 
     # 챕터당 목표 달성 상태
-    wpch = data["word_per_chapter"]
+    wpch = wpch_est
     if wpch and avg_w:
         wpch_status = "달성" if avg_w >= wpch else "미달"
         wpch_cls    = "jade" if avg_w >= wpch else "crimson"

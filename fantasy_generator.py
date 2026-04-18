@@ -829,6 +829,9 @@ def _parse_args():
     sub.add_parser("status", help="현재 프로젝트 상태 출력")
     sub.add_parser("check", help="환경 상태 확인 (API 키, 경로, 의존성)")
 
+    rs = sub.add_parser("resume", help="중단된 생성 재개 (없는 요소만 자동 생성)")
+    rs.add_argument("--yes", "-y", action="store_true", help="확인 프롬프트 자동 승인")
+
     return p.parse_args()
 
 
@@ -879,11 +882,76 @@ def _cli(args):
         worlds = "O" if "world" in project else "X"
         chars  = len(project.get("characters", []))
         plot   = "O" if "plot" in project else "X"
-        chs    = len(project.get("chapters", {}))
+        chapters = project.get("chapters", {})
+        chs    = len(chapters)
         total  = project.get("plot", {}).get("total_chapters", "?")
+        total_words = sum(len(v) for v in chapters.values())
+        avg_words = total_words // chs if chs else 0
         print(f"제목: {title}")
         print(f"세계관: {worlds}  캐릭터: {chars}명  플롯: {plot}")
         print(f"챕터: {chs} / {total}")
+        if chs:
+            print(f"총 자수: {total_words:,}자  (평균 {avg_words:,}자/장)")
+            print("─" * 30)
+            for num in sorted(chapters.keys(), key=lambda x: int(x)):
+                wc = len(chapters[num])
+                print(f"  제{num}장: {wc:,}자")
+
+    elif args.cmd == "resume":
+        auto_yes = getattr(args, "yes", False)
+        steps_done = []
+        steps_todo = []
+
+        if "world" not in project:
+            steps_todo.append("세계관")
+        else:
+            steps_done.append("세계관")
+        if not project.get("characters"):
+            steps_todo.append("캐릭터")
+        else:
+            steps_done.append(f"캐릭터 {len(project['characters'])}명")
+        if "plot" not in project:
+            steps_todo.append("플롯")
+        else:
+            steps_done.append("플롯")
+
+        pending_chs = []
+        if "plot" in project:
+            total_ch = project["plot"].get("total_chapters", 0)
+            written = set(project.get("chapters", {}).keys())
+            pending_chs = [n for n in range(1, total_ch + 1) if str(n) not in written]
+            if pending_chs:
+                steps_todo.append(f"챕터 {len(pending_chs)}개 ({pending_chs[0]}~{pending_chs[-1]}장)")
+            else:
+                steps_done.append(f"전체 {total_ch}챕터")
+
+        print(f"완료: {', '.join(steps_done) or '없음'}")
+        print(f"남은 작업: {', '.join(steps_todo) or '없음'}")
+
+        if not steps_todo:
+            print("모든 생성이 완료되어 있습니다.")
+        else:
+            if not auto_yes:
+                ans = input("재개할까요? (y/n): ").strip().lower()
+                if ans != "y":
+                    return
+
+            if "world" not in project:
+                project["world"] = generate_world("")
+                save_project(project)
+
+            if not project.get("characters"):
+                project["characters"] = []
+                for role in ["주인공", "악당"]:
+                    project["characters"].append(generate_character(project["world"], role))
+                    save_project(project)
+
+            if "plot" not in project:
+                project["plot"] = generate_plot(project["world"], project["characters"])
+                save_project(project)
+
+            if pending_chs or "plot" in project:
+                write_all_chapters(project, auto_yes=True)
 
     elif args.cmd == "check":
         import importlib
