@@ -6,4 +6,5 @@ __pycache__/
 my_fantasy_novel.json
 fantasy_generator.log
 *.zip
+venv/
 
