@@ -6,8 +6,10 @@ AI_NovelGenerator의 데이터를 읽어 HTML 대시보드를 생성합니다.
 """
 
 import os
+import sys
 import json
 import re
+import time
 import webbrowser
 from pathlib import Path
 from datetime import datetime
@@ -135,7 +137,7 @@ def progress_bar(val, total):
 
 # ── HTML 생성 ──────────────────────────────────────────────────────────────────
 
-def generate_html(data):
+def generate_html(data, watch: bool = False):
     chapters = data["chapters"]
     written  = len(chapters)
     target   = data["target_chapters"]
@@ -213,6 +215,7 @@ def generate_html(data):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{('<meta http-equiv="refresh" content="30">') if watch else ''}
 <title>작업현황 · {data['title']}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -827,17 +830,34 @@ body {{
 
 # ── 메인 ──────────────────────────────────────────────────────────────────────
 
-def main():
-    print("대시보드 생성 중 …")
+WATCH_INTERVAL = 30  # 초
+
+
+def _build(watch: bool = False) -> Path:
     config = load_config()
     data   = collect_novel_data(config)
-    html   = generate_html(data)
-
+    html   = generate_html(data, watch=watch)
     out_path = Path(__file__).parent / "dashboard.html"
     out_path.write_text(html, encoding="utf-8")
+    return out_path
 
-    print(f"완료 → {out_path}")
+
+def main():
+    watch = "--watch" in sys.argv
+
+    out_path = _build(watch=watch)
+    print(f"{'[watch]' if watch else ''} 완료 → {out_path}")
     webbrowser.open(out_path.as_uri())
+
+    if watch:
+        print(f"[watch] {WATCH_INTERVAL}초마다 자동 갱신합니다. 종료: Ctrl+C")
+        try:
+            while True:
+                time.sleep(WATCH_INTERVAL)
+                _build(watch=True)
+                print(f"[watch] 갱신 완료 {datetime.now().strftime('%H:%M:%S')}")
+        except KeyboardInterrupt:
+            print("\n[watch] 종료.")
 
 
 if __name__ == "__main__":

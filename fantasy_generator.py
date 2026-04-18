@@ -135,6 +135,14 @@ def _sync_to_novel_dir(project: dict):
             )
         (novel_dir / "Novel_directory.txt").write_text("\n".join(lines), encoding="utf-8")
 
+    if plot:
+        acts_text = "\n".join(
+            f"[{a.get('name','')}] {a.get('summary','')}"
+            for a in plot.get("acts", [])
+        )
+        summary = f"{plot.get('title','')}\n{plot.get('logline','')}\n\n{acts_text}"
+        (novel_dir / "global_summary.txt").write_text(summary, encoding="utf-8")
+
     if chapters:
         ch_dir = novel_dir / "chapters"
         ch_dir.mkdir(exist_ok=True)
@@ -355,7 +363,46 @@ def write_chapter(world: dict, characters: list[dict], plot: dict, chapter_num: 
 
 
 # ─────────────────────────────────────────────
-# 5. 저장 / 불러오기
+# 5. 전체 챕터 순차 자동 작성
+# ─────────────────────────────────────────────
+
+def write_all_chapters(project: dict):
+    """플롯의 모든 챕터를 순서대로 자동 작성합니다."""
+    plot = project.get("plot")
+    if not plot:
+        print("  먼저 플롯을 생성해주세요.")
+        return
+
+    total = plot["total_chapters"]
+    written = set(project.get("chapters", {}).keys())
+    pending = [n for n in range(1, total + 1) if str(n) not in written]
+
+    if not pending:
+        print("  모든 챕터가 이미 작성되어 있습니다.")
+        return
+
+    print(f"\n총 {total}챕터 중 {len(pending)}개 작성 예정: {pending}")
+    ans = input("시작할까요? (y/n): ").strip().lower()
+    if ans != "y":
+        return
+
+    for num in pending:
+        content = write_chapter(
+            project["world"],
+            project["characters"],
+            plot,
+            num,
+        )
+        if content:
+            project.setdefault("chapters", {})[str(num)] = content
+            save_project(project)
+        print(f"  [{num}/{total}] 완료\n")
+
+    print(f"전체 {len(pending)}챕터 작성 완료!")
+
+
+# ─────────────────────────────────────────────
+# 6. 저장 / 불러오기
 # ─────────────────────────────────────────────
 
 def save_project(project: dict, filename: str = "my_fantasy_novel.json"):
@@ -482,10 +529,11 @@ def print_menu(project: dict):
 ║  1. 세계관 생성                          ║
 ║  2. 캐릭터 추가                          ║
 ║  3. 플롯 생성                            ║
-║  4. 챕터 작성                            ║
-║  5. 대화형 이야기 모드                   ║
-║  6. 소설 내보내기 (.txt)                 ║
-║  7. 저장 / 불러오기                      ║
+║  4. 챕터 작성 (단일)                     ║
+║  5. 전체 챕터 자동 작성                  ║
+║  6. 대화형 이야기 모드                   ║
+║  7. 소설 내보내기 (.txt)                 ║
+║  8. 저장 / 불러오기                      ║
 ║  0. 종료                                ║
 ╚══════════════════════════════════════════╝""")
 
@@ -550,18 +598,24 @@ def main():
                 save_project(project)
 
         elif choice == "5":
+            if "plot" not in project:
+                print("  먼저 플롯을 생성해주세요.")
+                continue
+            write_all_chapters(project)
+
+        elif choice == "6":
             if not project:
                 print("  먼저 세계관과 캐릭터를 만들어주세요.")
                 continue
             interactive_story(project)
 
-        elif choice == "6":
+        elif choice == "7":
             if not project.get("chapters"):
                 print("  작성된 챕터가 없습니다.")
                 continue
             export_novel(project)
 
-        elif choice == "7":
+        elif choice == "8":
             sub = input("저장(s) / 불러오기(l): ").strip().lower()
             if sub == "s":
                 fname = input("파일명 (엔터=기본값): ").strip() or "my_fantasy_novel.json"
