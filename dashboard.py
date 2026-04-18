@@ -179,10 +179,34 @@ def generate_html(data, watch: bool = False):
         recent_html = '<p class="empty-note">아직 작성된 장이 없습니다</p>'
 
     # 세계관·캐릭터·목차 미리보기
-    arch_html = preview_box(data["architecture_preview"], "세계관이 아직 생성되지 않았습니다")
+    arch_html    = preview_box(data["architecture_preview"], "세계관이 아직 생성되지 않았습니다")
     char_html    = preview_box(data["character_preview"],    "캐릭터 정보가 없습니다")
     bp_html      = preview_box(data["blueprint_preview"],    "챕터 목차가 아직 생성되지 않았습니다")
     summary_html = preview_box(data["summary_preview"],      "글로벌 요약이 없습니다")
+
+    # 시작 가이드 (데이터 없을 때만 표시)
+    no_data = not data["filepath"] or (
+        not data["has_architecture"] and not data["chapters"]
+    )
+    guide_html = f"""
+  <div class="row-1" id="guide-section">
+    <div class="card">
+      <div class="card-corner-tr"></div><div class="card-corner-bl"></div>
+      <p class="sec-title">시작 가이드 · 使用方法</p>
+      <div style="padding:8px 0; line-height:2.2; font-size:13px; color:var(--t2);">
+        <p style="margin-bottom:12px; color:var(--gold);">소설 데이터가 아직 없습니다. 아래 순서로 시작하세요.</p>
+        <ol style="padding-left:20px; color:var(--t2);">
+          <li><code style="color:var(--gold2);">run_fantasy_generator.bat</code> 실행 → 저장 경로 설정</li>
+          <li>메뉴 <strong>9</strong> (원클릭 자동 생성) 선택 → 테마 입력</li>
+          <li>세계관·캐릭터·플롯·챕터가 자동 생성됩니다</li>
+          <li><code style="color:var(--gold2);">run_dashboard.bat</code> 재실행 → 결과 확인</li>
+        </ol>
+        <p style="margin-top:16px; color:var(--t3); font-size:11px;">
+          CLI: <code>python fantasy_generator.py quick "테마" -y</code>
+        </p>
+      </div>
+    </div>
+  </div>""" if no_data else ""
 
     # 차트 데이터
     c_labels = json.dumps([f"제{ch['num']}장" for ch in chapters], ensure_ascii=False)
@@ -655,6 +679,8 @@ body {{
     </div>
 
   </div>
+
+  {guide_html}
 
   <!-- 작업 현황 + 최근 장 -->
   <div class="row-2">

@@ -121,7 +121,7 @@ def _get_novel_dir() -> Path | None:
     return None
 
 
-def _ensure_setup():
+def _ensure_setup(auto_yes: bool = False):
     """filepath가 미설정이면 초기 설정 마법사를 실행합니다."""
     if _get_novel_dir() is not None:
         return
@@ -129,9 +129,12 @@ def _ensure_setup():
     default = str(Path.home() / "Documents" / "KY_FANTASY")
     print("\n" + "─" * 50)
     print("  초기 설정: 소설 저장 경로가 설정되지 않았습니다.")
-    print(f"  대시보드가 데이터를 읽으려면 경로 설정이 필요합니다.")
     print(f"  기본값: {default}")
-    fp = input(f"  경로 입력 (엔터 = 기본값 사용): ").strip() or default
+    if auto_yes:
+        fp = default
+        print(f"  --yes 모드: 기본값으로 자동 설정합니다.")
+    else:
+        fp = input(f"  경로 입력 (엔터 = 기본값 사용): ").strip() or default
     fp = str(Path(fp).expanduser().resolve())
 
     try:
@@ -817,8 +820,9 @@ def _parse_args():
 
 def _cli(args):
     """비대화형 CLI 모드."""
+    auto_yes = getattr(args, "yes", False)
     if args.cmd != "status":
-        _ensure_setup()
+        _ensure_setup(auto_yes=auto_yes)
     project = load_project() or {}
 
     if args.cmd == "quick":
