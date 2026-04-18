@@ -6,12 +6,22 @@ Claude API를 사용하여 세계관, 캐릭터, 플롯, 챕터를 자동 생성
 import anthropic
 import argparse
 import json
+import logging
 import os
 import re
 import sys
 import time
 from pathlib import Path
 from datetime import datetime
+
+_LOG_PATH = Path(__file__).parent / "fantasy_generator.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[
+        logging.FileHandler(_LOG_PATH, encoding="utf-8"),
+    ],
+)
 
 
 MODEL = "claude-sonnet-4-6"
@@ -230,6 +240,7 @@ JSON만 반환하세요."""
     text = next(b.text for b in response.content if b.type == "text")
     world = _parse_json(text)
     print(f"  '{world['world_name']}' 세계관 생성 완료!")
+    logging.info(f"세계관 생성: {world['world_name']}")
     return world
 
 
@@ -274,6 +285,7 @@ JSON만 반환하세요."""
     text = next(b.text for b in response.content if b.type == "text")
     character = _parse_json(text)
     print(f"  캐릭터 '{character['name']}' 생성 완료!")
+    logging.info(f"캐릭터 생성: {character['name']} ({role})")
     return character
 
 
@@ -340,6 +352,7 @@ def generate_plot(world: dict, characters: list[dict]) -> dict:
     text = next(b.text for b in response.content if b.type == "text")
     plot = _parse_json(text)
     print(f"  플롯 '{plot['title']}' 생성 완료! (총 {plot['total_chapters']}챕터)")
+    logging.info(f"플롯 생성: {plot['title']} ({plot['total_chapters']}챕터)")
     _sync_config(plot)
     return plot
 
@@ -421,6 +434,7 @@ def write_chapter(world: dict, characters: list[dict], plot: dict, chapter_num: 
 
     print("\n" + "─" * 50)
     print(f"  {chapter_num}챕터 작성 완료! ({len(full_text)}자)")
+    logging.info(f"챕터 작성 완료: {chapter_num}장 ({len(full_text)}자)")
     return full_text
 
 

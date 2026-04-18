@@ -38,13 +38,20 @@ Fantasy/
 - **모델**: `claude-sonnet-4-6`
 - **지연 초기화**: `get_client()` — import 시 API 키 불요
 - **저장**: `save_project()` 호출 시 `AI_NovelGenerator` 파일 구조 자동 동기화
-- **메뉴**:
+- **로그**: `fantasy_generator.log` 파일에 세계관·캐릭터·플롯·챕터 생성 이력 기록
+- **대화형 메뉴** (`python fantasy_generator.py`):
   - 1~4: 세계관·캐릭터·플롯·단일 챕터 생성
   - 5: 전체 챕터 순차 자동 작성
   - 6: 대화형 이야기 모드 (슬라이딩 윈도우 10메시지)
   - 7: 소설 내보내기 `.txt`
   - 8: 저장/불러오기
   - 9: **원클릭 자동 생성** (테마 → 세계관 → 캐릭터 → 플롯 → 전체 챕터)
+- **CLI 서브커맨드** (`python fantasy_generator.py <cmd>`):
+  - `status` — 현재 프로젝트 현황 출력
+  - `quick [theme] [--roles 주인공,악당] [--no-chapters]` — 원클릭 자동 생성
+  - `chapter N` — 특정 챕터 작성
+  - `all-chapters` — 전체 챕터 순차 작성
+  - `export` — `.txt` 내보내기
 - **오류 처리**: `_with_retry()` — 429/529/연결 오류 시 지수 백오프 3회
 - **스트리밍**: 실패 시 비스트리밍 폴백
 
@@ -91,11 +98,19 @@ Fantasy/
 
 ---
 
+## Git 구조
+
+- **루트 레포**: https://github.com/eunice-101/KY_FANTASY
+- **서브모듈**: https://github.com/eunice-101/AI_NovelGenerator (원본 YILING0013에서 fork)
+  - 버그 수정 커밋이 fork에 반영됨
+  - 원본에 push 권한 없으므로 서브모듈 변경은 항상 fork로 push
+
 ## 보안 주의사항
 
 - `AI_NovelGenerator/config.json` — API 키 포함, `.gitignore`에 등록됨. **절대 커밋 금지**
 - `.env` — API 키 저장 파일, `.gitignore`에 등록됨. **절대 커밋 금지**
 - `my_fantasy_novel.json` — 생성된 소설 데이터, `.gitignore`에 등록됨
+- `fantasy_generator.log` — 작업 로그, `.gitignore`에 등록됨
 
 ---
 

@@ -7,10 +7,16 @@ echo.
 
 cd /d "%~dp0"
 
-:: .env 파일에서 API 키 읽기
+:: .env 파일에서 API 키 읽기 (따옴표 제거 포함)
 if exist ".env" (
-    for /f "tokens=1,* delims==" %%A in (.env) do (
-        if "%%A"=="ANTHROPIC_API_KEY" set ANTHROPIC_API_KEY=%%B
+    for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
+        if "%%A"=="ANTHROPIC_API_KEY" (
+            set _RAW=%%B
+            setlocal enabledelayedexpansion
+            set _RAW=!_RAW:"=!
+            set ANTHROPIC_API_KEY=!_RAW!
+            endlocal & set ANTHROPIC_API_KEY=%_RAW:"=%
+        )
     )
 )
 
