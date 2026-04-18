@@ -63,6 +63,7 @@ def collect_novel_data(config):
         "architecture_preview": "",
         "blueprint_preview": "",
         "character_preview": "",
+        "summary_preview": "",
         "generated_at": datetime.now().strftime("%Y년 %m월 %d일  %H:%M"),
     }
 
@@ -82,8 +83,10 @@ def collect_novel_data(config):
                 data[preview_key] = content[:600].strip()
 
     summary_file = os.path.join(filepath, "global_summary.txt")
-    if os.path.exists(summary_file) and read_file_safe(summary_file).strip():
+    summary_content = read_file_safe(summary_file).strip() if os.path.exists(summary_file) else ""
+    if summary_content:
         data["has_summary"] = True
+        data["summary_preview"] = summary_content[:600]
 
     chapters_dir = os.path.join(filepath, "chapters")
     if os.path.isdir(chapters_dir):
@@ -177,8 +180,9 @@ def generate_html(data, watch: bool = False):
 
     # 세계관·캐릭터·목차 미리보기
     arch_html = preview_box(data["architecture_preview"], "세계관이 아직 생성되지 않았습니다")
-    char_html = preview_box(data["character_preview"],    "캐릭터 정보가 없습니다")
-    bp_html   = preview_box(data["blueprint_preview"],    "챕터 목차가 아직 생성되지 않았습니다")
+    char_html    = preview_box(data["character_preview"],    "캐릭터 정보가 없습니다")
+    bp_html      = preview_box(data["blueprint_preview"],    "챕터 목차가 아직 생성되지 않았습니다")
+    summary_html = preview_box(data["summary_preview"],      "글로벌 요약이 없습니다")
 
     # 차트 데이터
     c_labels = json.dumps([f"제{ch['num']}장" for ch in chapters], ensure_ascii=False)
@@ -718,6 +722,15 @@ body {{
       {bp_html}
     </div>
 
+  </div>
+
+  <!-- 글로벌 요약 -->
+  <div class="row-1">
+    <div class="card">
+      <div class="card-corner-tr"></div><div class="card-corner-bl"></div>
+      <p class="sec-title">글로벌 요약 · 全體要約</p>
+      {summary_html}
+    </div>
   </div>
 
   <!-- 전체 장 목록 -->
