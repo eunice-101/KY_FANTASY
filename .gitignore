@@ -3,3 +3,6 @@ dashboard.html
 __pycache__/
 *.pyc
 .env
+my_fantasy_novel.json
+*.zip
+
