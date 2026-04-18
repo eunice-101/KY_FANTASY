@@ -15,7 +15,8 @@ from pathlib import Path
 from datetime import datetime
 
 
-CONFIG_PATH = Path(__file__).parent / "AI_NovelGenerator" / "config.json"
+CONFIG_PATH  = Path(__file__).parent / "AI_NovelGenerator" / "config.json"
+JSON_PATH    = Path(__file__).parent / "my_fantasy_novel.json"
 
 
 def load_config():
@@ -34,46 +35,33 @@ def read_file_safe(path):
         return ""
 
 
-def collect_novel_data(config):
-    other = config.get("other_params", {})
-    filepath = other.get("filepath", "").strip()
-    topic = other.get("topic", "").strip()
-    genre = other.get("genre", "판타지").strip()
-    target_chapters = int(other.get("chapter_num") or other.get("num_chapters") or 0)
-    word_number = int(other.get("word_number") or 0)
-
-    choose = config.get("choose_configs", {})
-    arch_model = choose.get("architecture_llm", "")
-    final_model = choose.get("final_chapter_llm", "")
-
-    data = {
-        "title": topic or "제목 미설정",
-        "genre": genre,
-        "target_chapters": target_chapters,
-        "word_per_chapter": word_number,
-        "arch_model": arch_model,
-        "final_model": final_model,
+def _empty_data(title="제목 미설정", genre="판타지", target=0, wpch=0,
+                arch_model="", final_model="", filepath=""):
+    return {
+        "title": title, "genre": genre,
+        "target_chapters": target, "word_per_chapter": wpch,
+        "arch_model": arch_model, "final_model": final_model,
         "filepath": filepath,
-        "chapters": [],
-        "total_words": 0,
-        "has_architecture": False,
-        "has_blueprint": False,
-        "has_characters": False,
-        "has_summary": False,
-        "architecture_preview": "",
-        "blueprint_preview": "",
-        "character_preview": "",
-        "summary_preview": "",
+        "chapters": [], "total_words": 0,
+        "has_architecture": False, "has_blueprint": False,
+        "has_characters": False, "has_summary": False,
+        "architecture_preview": "", "blueprint_preview": "",
+        "character_preview": "", "summary_preview": "",
+        "source": "none",
         "generated_at": datetime.now().strftime("%Y년 %m월 %d일  %H:%M"),
     }
 
-    if not filepath or not os.path.isdir(filepath):
-        return data
 
+def _collect_from_filepath(data: dict, filepath: str) -> bool:
+    """filepath 디렉터리에서 파일을 읽어 data를 채웁니다. 데이터 있으면 True."""
+    if not filepath or not os.path.isdir(filepath):
+        return False
+
+    found = False
     for key, fname, preview_key in [
         ("has_architecture", "novel_architecture.txt", "architecture_preview"),
-        ("has_blueprint", "Novel_directory.txt", "blueprint_preview"),
-        ("has_characters", "character_state.txt", "character_preview"),
+        ("has_blueprint",    "Novel_directory.txt",    "blueprint_preview"),
+        ("has_characters",   "character_state.txt",    "character_preview"),
     ]:
         fpath = os.path.join(filepath, fname)
         if os.path.exists(fpath):
@@ -81,12 +69,14 @@ def collect_novel_data(config):
             if content.strip():
                 data[key] = True
                 data[preview_key] = content[:600].strip()
+                found = True
 
     summary_file = os.path.join(filepath, "global_summary.txt")
     summary_content = read_file_safe(summary_file).strip() if os.path.exists(summary_file) else ""
     if summary_content:
         data["has_summary"] = True
         data["summary_preview"] = summary_content[:600]
+        found = True
 
     chapters_dir = os.path.join(filepath, "chapters")
     if os.path.isdir(chapters_dir):
@@ -104,13 +94,118 @@ def collect_novel_data(config):
             modified = datetime.fromtimestamp(mtime).strftime("%Y.%m.%d")
             first_line = content.strip().split("\n")[0][:60] if content.strip() else ""
             data["chapters"].append({
-                "num": num,
-                "word_count": word_count,
-                "modified": modified,
-                "preview": first_line,
+                "num": num, "word_count": word_count,
+                "modified": modified, "preview": first_line,
             })
             data["total_words"] += word_count
+            found = True
 
+    return found
+
+
+def _collect_from_json(data: dict) -> bool:
+    """my_fantasy_novel.json에서 데이터를 읽어 data를 채웁니다. 데이터 있으면 True."""
+    if not JSON_PATH.exists():
+        return False
+    try:
+        proj = json.loads(JSON_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+
+    world = proj.get("world", {})
+    characters = proj.get("characters", [])
+    plot = proj.get("plot", {})
+    chapters_raw = proj.get("chapters", {})
+
+    if not (world or plot or chapters_raw):
+        return False
+
+    # 기본 메타
+    if plot:
+        data["title"] = plot.get("title", data["title"])
+        tags = plot.get("genre_tags", [])
+        data["genre"] = ", ".join(tags) if tags else data["genre"]
+        data["target_chapters"] = int(plot.get("total_chapters", 0)) or data["target_chapters"]
+
+    # 세계관 미리보기
+    if world:
+        lines = [
+            f"# {world.get('world_name','')}",
+            f"\n테마: {world.get('theme','')}",
+            f"\n{world.get('description','')[:400]}",
+        ]
+        data["has_architecture"] = True
+        data["architecture_preview"] = "\n".join(lines)[:600]
+
+    # 캐릭터 미리보기
+    if characters:
+        parts = [
+            f"{c.get('name','')} ({c.get('role','')}): {c.get('personality','')[:80]}"
+            for c in characters
+        ]
+        data["has_characters"] = True
+        data["character_preview"] = "\n".join(parts)[:600]
+
+    # 목차 미리보기
+    if plot and plot.get("chapter_outlines"):
+        lines = [f"# {plot.get('title','')}"]
+        for co in plot["chapter_outlines"]:
+            lines.append(f"제{co['chapter']}장 {co.get('title','')} — {co.get('summary','')[:60]}")
+        data["has_blueprint"] = True
+        data["blueprint_preview"] = "\n".join(lines)[:600]
+
+    # 요약 미리보기
+    if plot:
+        acts = "\n".join(
+            f"[{a.get('name','')}] {a.get('summary','')}"
+            for a in plot.get("acts", [])
+        )
+        summary = f"{plot.get('title','')}\n{plot.get('logline','')}\n\n{acts}"
+        if summary.strip():
+            data["has_summary"] = True
+            data["summary_preview"] = summary[:600]
+
+    # 챕터 목록
+    mtime_str = datetime.fromtimestamp(JSON_PATH.stat().st_mtime).strftime("%Y.%m.%d")
+    for num_str, content in sorted(chapters_raw.items(), key=lambda x: int(x[0])):
+        word_count = len(content.strip())
+        first_line = content.strip().split("\n")[0][:60] if content.strip() else ""
+        data["chapters"].append({
+            "num": int(num_str), "word_count": word_count,
+            "modified": mtime_str, "preview": first_line,
+        })
+        data["total_words"] += word_count
+
+    data["source"] = "json"
+    return True
+
+
+def collect_novel_data(config):
+    other = config.get("other_params", {})
+    filepath = other.get("filepath", "").strip()
+    topic    = other.get("topic", "").strip()
+    genre    = other.get("genre", "판타지").strip()
+    target_chapters = int(other.get("chapter_num") or other.get("num_chapters") or 0)
+    word_number     = int(other.get("word_number") or 0)
+
+    choose     = config.get("choose_configs", {})
+    arch_model = choose.get("architecture_llm", "")
+    final_model = choose.get("final_chapter_llm", "")
+
+    data = _empty_data(
+        title=topic or "제목 미설정", genre=genre,
+        target=target_chapters, wpch=word_number,
+        arch_model=arch_model, final_model=final_model,
+        filepath=filepath,
+    )
+
+    # 1순위: AI_NovelGenerator filepath 디렉터리
+    if _collect_from_filepath(data, filepath):
+        data["source"] = "filepath"
+        return data
+
+    # 2순위: my_fantasy_novel.json (fantasy_generator.py 네이티브 포맷)
+    _collect_from_json(data)
     return data
 
 
@@ -631,6 +726,7 @@ body {{
     <span><span class="meta-label">架構 모델</span><span class="meta-val">{data['arch_model'] or '—'}</span></span>
     <span><span class="meta-label">執筆 모델</span><span class="meta-val">{data['final_model'] or '—'}</span></span>
     <span><span class="meta-label">저장 경로</span><span class="meta-val">{data['filepath'] or '미설정'}</span></span>
+    <span><span class="meta-label">데이터 소스</span><span class="meta-val">{'파일 디렉터리' if data['source']=='filepath' else 'JSON (fantasy_generator)' if data['source']=='json' else '없음'}</span></span>
     <span><span class="meta-label">생성 일시</span><span class="meta-val">{data['generated_at']}</span></span>
   </div>
 </header>
