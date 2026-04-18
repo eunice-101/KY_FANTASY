@@ -99,12 +99,19 @@ def get_chapters():
     chapters = []
     for f in sorted(chapters_dir.glob("*.md")):
         content = f.read_text(encoding="utf-8")
+        num = int(f.stem.replace("chapter-", ""))
+        lines = [l for l in content.splitlines() if l.strip()]
+        title = lines[0].lstrip("#").strip() if lines else f.stem
+        mtime = datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d")
         chapters.append({
             "filename": f.name,
-            "number": f.stem.replace("chapter-", ""),
+            "number": num,
+            "num_str": f.stem.replace("chapter-", ""),
+            "title": title,
             "char_count": len(content),
-            "preview": content[:200].replace("\n", " "),
-            "word_count": len(content.split()),
+            "preview": " ".join(lines[1:3])[:120] if len(lines) > 1 else "",
+            "date": mtime,
+            "content": content,
         })
     return chapters
 
@@ -136,37 +143,73 @@ def get_novel():
     }
 
 
+CHAR_IMAGES = {
+    "seo-yuna":    "/static/images/seo-yoona.jpg",
+    "haewol":      "/static/images/haewol.jpg",
+    "kang-doyun":  "/static/images/kang-doyun.jpg",
+    "seo-daebi":   "/static/images/seo-daebi.jpg",
+    "yeonsangun":  "/static/images/yeonsangun.jpg",
+    "im-sahong":   "/static/images/Imsahong.jpg",
+}
+
 def get_characters():
     chars_dir = BASE_DIR / "bible" / "characters"
     chars = []
-    for f in sorted(chars_dir.glob("*.md")):
+    order = ["seo-yuna", "kang-doyun", "haewol", "seo-daebi", "yeonsangun", "im-sahong", "samdori"]
+    files = {f.stem: f for f in chars_dir.glob("*.md")}
+    sorted_keys = [k for k in order if k in files] + [k for k in files if k not in order]
+    for stem in sorted_keys:
+        f = files[stem]
         content = f.read_text(encoding="utf-8")
+        first_line = content.splitlines()[0].lstrip("#").strip()
+        # "서윤아(徐潤雅) — 주인공" → name="서윤아(徐潤雅)", role="주인공"
+        if " — " in first_line:
+            display_name, role = first_line.split(" — ", 1)
+        else:
+            display_name, role = first_line, ""
+        # 두 번째 비어있지 않은 줄부터 외모 등 미리보기
+        lines = [l.strip() for l in content.splitlines() if l.strip() and not l.startswith("#")]
+        preview = " ".join(lines[:3])[:120]
         chars.append({
-            "name": f.stem,
-            "preview": content[:300].replace("\n", " "),
+            "stem": stem,
+            "display_name": display_name,
+            "role": role,
+            "preview": preview,
+            "image_url": CHAR_IMAGES.get(stem, ""),
+            "content": content,
         })
     return chars
 
 
 @app.route("/")
 def index():
-    novel    = get_novel()
-    progress = load_json("planning/plot-progress.json")   # milestones, story_phase, last_updated
-    quality  = load_json("planning/quality-metrics.json") # current_mode만 사용
-    chapters = get_chapters()
+    import json as _json
+    progress   = load_json("planning/plot-progress.json")
+    chapters   = get_chapters()
     characters = get_characters()
 
-    completion_pct = novel["progress_percent"]
+    total_chars = sum(c["char_count"] for c in chapters)
+    avg_chars   = round(total_chars / len(chapters)) if chapters else 0
+    total_ch    = progress.get("total_chapters", 25)
+    done_ch     = progress.get("completed_chapters", len(chapters))
+    pct         = round(done_ch / total_ch * 100, 1) if total_ch else 0
+    sorted_ch   = sorted(chapters, key=lambda x: x["number"])
+    chart_labels = _json.dumps([f"{c['number']}장" for c in sorted_ch])
+    chart_data   = _json.dumps([c["char_count"] for c in sorted_ch])
 
     return render_template(
         "index.html",
-        novel=novel,
         progress=progress,
-        quality=quality,
-        chapters=chapters,
+        chapters=sorted(chapters, key=lambda x: x["number"], reverse=True),
         characters=characters,
-        completion_pct=completion_pct,
-        now=datetime.now().strftime("%Y-%m-%d %H:%M"),
+        total_chars=total_chars,
+        avg_chars=avg_chars,
+        total_ch=total_ch,
+        done_ch=done_ch,
+        pct=pct,
+        chart_labels=chart_labels,
+        chart_data=chart_data,
+        now=datetime.now().strftime("%Y년 %m월 %d일 %H:%M"),
     )
 
 

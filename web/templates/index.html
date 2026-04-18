@@ -3,437 +3,459 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ novel.title }} — KY Fantasy 대시보드</title>
+<title>작업현황 · {{ progress.get('novel_title','천서의 아이') }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  :root {
-    --ink: #1a1a2e;
-    --paper: #f4f0e8;
-    --gold: #c8a96e;
-    --crimson: #8b1a1a;
-    --jade: #2d6a4f;
-    --mist: #e8e0d0;
-    --shadow: rgba(0,0,0,0.15);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Noto Serif KR', 'Noto Serif', Georgia, serif;
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
-  }
+:root {
+  --bg:#07060a; --s1:#0e0c10; --s2:#141118; --s3:#1c1822; --s4:#241f2c;
+  --gold:#c49a3c; --gold2:#9a7628; --gold3:#4a3812; --gold4:#2a2008;
+  --crimson:#b83028; --crim2:#7a1e18; --crim3:#3a0e0c;
+  --jade:#4a8a68;
+  --t1:#ddd0b8; --t2:#a09070; --t3:#5a4e38; --t4:#302820;
+  --serif:'Noto Serif KR','Batang',Georgia,serif;
+  --sans:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scrollbar-width:thin;scrollbar-color:var(--gold3) var(--bg);}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--gold3);border-radius:2px;}
+body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100vh;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 47px,rgba(74,56,18,.06) 48px),
+    repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(74,56,18,.04) 48px);}
 
-  /* ── 헤더 ── */
-  header {
-    background: linear-gradient(135deg, var(--ink) 0%, #16213e 100%);
-    color: var(--gold);
-    padding: 1.5rem 2rem;
-    text-align: center;
-    border-bottom: 3px solid var(--gold);
-  }
-  header h1 { font-size: 1.6rem; letter-spacing: 0.1em; }
-  header .subtitle { font-size: 0.85rem; opacity: 0.7; margin-top: 0.4rem; }
+/* 헤더 */
+.header{position:relative;overflow:hidden;padding:48px 56px 40px;
+  background:radial-gradient(ellipse 70% 100% at 80% 50%,rgba(42,28,8,.6) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 80% at 10% 30%,rgba(30,14,30,.5) 0%,transparent 60%),var(--s1);
+  border-bottom:1px solid var(--gold3);}
+.header-deco{position:absolute;right:40px;top:50%;transform:translateY(-50%);
+  font-family:var(--serif);font-size:240px;font-weight:700;color:transparent;
+  -webkit-text-stroke:1px rgba(196,154,60,.07);line-height:1;pointer-events:none;}
+.header-eyebrow{font-family:var(--serif);font-size:10px;letter-spacing:5px;color:var(--gold2);
+  text-transform:uppercase;margin-bottom:14px;}
+.header h1{font-family:var(--serif);font-size:36px;font-weight:600;letter-spacing:.04em;
+  color:var(--t1);margin-bottom:12px;line-height:1.3;}
+.header-genre{display:inline-block;font-family:var(--serif);font-size:11px;letter-spacing:3px;
+  color:var(--gold);border:1px solid var(--gold2);padding:4px 16px;margin-bottom:20px;}
+.header-rule{width:100%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold3) 20%,var(--gold3) 80%,transparent);
+  margin:18px 0 14px;}
+.header-meta{display:flex;flex-wrap:wrap;gap:24px;font-size:11px;color:var(--t3);letter-spacing:.5px;}
+.header-meta span{display:flex;align-items:center;gap:6px;}
+.meta-label{color:var(--t3);} .meta-val{color:var(--t2);}
 
-  /* ── 레이아웃 ── */
-  .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-  @media (max-width: 900px) {
-    .grid-3 { grid-template-columns: 1fr; }
-    .grid-2 { grid-template-columns: 1fr; }
-    .novel-card { flex-direction: column; }
-    .novel-cover { width: 100% !important; max-width: 220px; margin: 0 auto; }
-  }
+/* 레이아웃 */
+.wrap{max-width:1360px;margin:0 auto;padding:36px 40px 80px;}
+.row-5{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px;}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.row-1{margin-bottom:20px;}
 
-  /* ── 카드 공통 ── */
-  .card {
-    background: #fff;
-    border: 1px solid var(--mist);
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px var(--shadow);
-  }
-  .card h2 {
-    font-size: 1rem;
-    color: var(--crimson);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--mist);
-  }
+/* 카드 */
+.card{position:relative;background:var(--s2);border:1px solid var(--gold3);padding:22px 24px;
+  box-shadow:inset 0 0 0 3px var(--s2),inset 0 0 0 4px var(--gold4);}
+.card::before,.card::after{content:'';position:absolute;width:14px;height:14px;
+  border-color:var(--gold2);border-style:solid;opacity:.6;}
+.card::before{top:5px;left:5px;border-width:1px 0 0 1px;}
+.card::after{bottom:5px;right:5px;border-width:0 1px 1px 0;}
+.cc-tr,.cc-bl{position:absolute;width:14px;height:14px;border-color:var(--gold2);
+  border-style:solid;opacity:.6;pointer-events:none;}
+.cc-tr{top:5px;right:5px;border-width:1px 1px 0 0;}
+.cc-bl{bottom:5px;left:5px;border-width:0 0 1px 1px;}
 
-  /* ── 소설 정보 카드 (커버 + 정보) ── */
-  .novel-card {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-  }
-  .novel-cover {
-    flex-shrink: 0;
-    width: 180px;
-  }
-  .novel-cover img {
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
-    border-radius: 6px;
-    box-shadow: 4px 6px 16px rgba(0,0,0,0.25);
-    display: block;
-  }
-  .novel-info { flex: 1; }
-  .novel-info .novel-title-main {
-    font-size: 1.6rem;
-    font-weight: bold;
-    color: var(--ink);
-    line-height: 1.2;
-  }
-  .novel-info .novel-subtitle {
-    font-size: 1rem;
-    color: var(--gold);
-    margin-top: 0.25rem;
-  }
-  .novel-info .novel-genre {
-    font-size: 0.8rem;
-    color: #888;
-    margin-top: 0.4rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .novel-info .novel-synopsis {
-    font-size: 0.9rem;
-    color: #555;
-    margin-top: 0.9rem;
-    line-height: 1.7;
-    border-left: 3px solid var(--mist);
-    padding-left: 0.85rem;
-  }
-  .novel-meta-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1.1rem;
-    flex-wrap: wrap;
-  }
-  /* 상태 배지 */
-  .status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: bold;
-    letter-spacing: 0.04em;
-  }
-  .status-writing   { background: #cce5ff; color: #004085; }
-  .status-draft     { background: #e2e3e5; color: #383d41; }
-  .status-completed { background: #d4edda; color: #155724; }
-  .status-paused    { background: #fff3cd; color: #856404; }
-  .novel-progress-text {
-    font-size: 0.85rem;
-    color: #666;
-  }
-  .novel-arc {
-    font-size: 0.82rem;
-    color: var(--crimson);
-    font-style: italic;
-  }
+/* 섹션 제목 */
+.sec-title{font-family:var(--serif);font-size:13px;font-weight:500;letter-spacing:3px;
+  color:var(--t2);margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.sec-title::before{content:'◆';color:var(--gold2);font-size:8px;}
+.sec-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold3),transparent);}
 
-  /* ── 진행률 바 ── */
-  .progress-section { margin-bottom: 2rem; }
-  .progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-  }
-  .progress-title { font-size: 1.1rem; font-weight: bold; }
-  .progress-pct { font-size: 2rem; font-weight: bold; color: var(--gold); }
-  .progress-bar {
-    width: 100%; height: 20px;
-    background: var(--mist);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--jade), var(--gold));
-    border-radius: 10px;
-    transition: width 0.5s ease;
-    position: relative;
-  }
-  .progress-fill::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    animation: shimmer 2s infinite;
-  }
-  @keyframes shimmer {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-  .milestone-row { display: flex; justify-content: space-between; margin-top: 0.75rem; }
-  .milestone { font-size: 0.7rem; color: #999; text-align: center; }
-  .milestone.done { color: var(--jade); font-weight: bold; }
+/* 통계 카드 */
+.stat-eyebrow{font-size:10px;letter-spacing:3px;color:var(--t3);text-transform:uppercase;
+  margin-bottom:10px;font-family:var(--serif);}
+.stat-val{font-family:var(--serif);font-size:40px;font-weight:300;line-height:1;
+  color:var(--gold);margin-bottom:8px;letter-spacing:-.02em;}
+.stat-val.jade{color:var(--jade);} .stat-val.crimson{color:var(--crimson);} .stat-val.pearl{color:var(--t1);}
+.stat-sub{font-size:11px;color:var(--t3);letter-spacing:.5px;}
+.prog-row{display:flex;align-items:center;gap:10px;margin-top:12px;}
+.prog-track{flex:1;height:3px;background:var(--gold4);overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--crim2),var(--gold));}
+.prog-pct{font-size:10px;color:var(--gold2);font-family:var(--serif);min-width:36px;text-align:right;}
 
-  /* ── 통계 ── */
-  .stat-big { font-size: 2.5rem; font-weight: bold; color: var(--ink); line-height: 1; }
-  .stat-label { font-size: 0.8rem; color: #888; margin-top: 0.25rem; }
-  .stat-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    margin-top: 0.5rem;
-  }
-  .badge-excellent { background: #d4edda; color: #155724; }
-  .badge-high      { background: #cce5ff; color: #004085; }
-  .badge-standard  { background: #fff3cd; color: #856404; }
-  .badge-focus     { background: #f8d7da; color: #721c24; }
+/* 도장 */
+.seal{display:inline-flex;align-items:center;justify-content:center;font-family:var(--serif);
+  font-size:11px;letter-spacing:2px;padding:4px 12px;min-width:64px;border:1.5px solid;}
+.seal-on{color:var(--crimson);border-color:var(--crimson);background:var(--crim3);}
+.seal-off{color:var(--t3);border-color:var(--t4);}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.status-row{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:var(--s3);border:1px solid var(--t4);}
+.status-row-label{font-size:12px;color:var(--t2);}
 
-  /* ── 헬스 게이지 ── */
-  .health-gauge { display: flex; align-items: center; gap: 1rem; }
-  .health-circle {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; font-weight: bold; color: #fff;
-    flex-shrink: 0;
-  }
-  .health-ok   { background: var(--jade); }
-  .health-warn { background: #e07b39; }
-  .health-err  { background: var(--crimson); }
+/* 차트 */
+.chart-wrap{position:relative;height:160px;}
 
-  /* ── 챕터 목록 ── */
-  .chapter-list { max-height: 400px; overflow-y: auto; }
-  .chapter-item {
-    display: flex; align-items: flex-start; gap: 1rem;
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--mist);
-    cursor: pointer; transition: background 0.2s;
-    text-decoration: none; color: inherit;
-  }
-  .chapter-item:hover { background: var(--mist); }
-  .chapter-num { font-size: 0.75rem; color: var(--gold); font-weight: bold; min-width: 50px; padding-top: 0.1rem; }
-  .chapter-info { flex: 1; }
-  .chapter-preview { font-size: 0.85rem; color: #666; margin-top: 0.25rem; line-height: 1.4; }
-  .chapter-meta { font-size: 0.75rem; color: #aaa; margin-top: 0.25rem; }
+/* 캐릭터 그리드 */
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.75rem;padding:.5rem 0;}
+.char-card{display:flex;flex-direction:column;align-items:center;text-align:center;
+  border:1px solid var(--gold3);border-radius:8px;background:var(--s3);
+  overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .15s;}
+.char-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.5);transform:translateY(-2px);}
+.cp-img{width:100%;aspect-ratio:2/3;object-fit:cover;object-position:top center;display:block;}
+.cp-placeholder{width:100%;aspect-ratio:2/3;background:var(--s4);
+  display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
+.cp-label{padding:.4rem .3rem .5rem;border-top:2px solid var(--gold3);width:100%;}
+.cp-name{font-weight:bold;color:var(--gold);font-size:.8rem;line-height:1.3;font-family:var(--serif);}
+.cp-role{font-size:.68rem;color:var(--jade);margin-top:.15rem;}
 
-  /* ── 캐릭터 ── */
-  .char-item { padding: 0.75rem; border-bottom: 1px solid var(--mist); }
-  .char-name { font-weight: bold; color: var(--crimson); }
-  .char-preview { font-size: 0.85rem; color: #666; margin-top: 0.25rem; }
+/* 챕터 표 */
+.chap-table{width:100%;border-collapse:collapse;}
+.chap-table thead th{font-family:var(--serif);font-size:10px;letter-spacing:3px;color:var(--t3);
+  text-align:left;padding:0 12px 12px;border-bottom:1px solid var(--gold3);}
+.chap-table tbody td{padding:10px 12px;border-bottom:1px solid var(--t4);vertical-align:middle;}
+.chap-row{cursor:pointer;}
+.chap-row:hover td{background:rgba(196,154,60,.08);}
+.num-badge{display:inline-block;font-family:var(--serif);font-size:11px;color:var(--gold2);
+  border:1px solid var(--gold3);padding:2px 8px;letter-spacing:1px;white-space:nowrap;}
+.td-n{width:90px;} .td-p{color:var(--t2);font-size:12px;max-width:360px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.td-w{text-align:right;font-family:var(--serif);font-size:12px;color:var(--t2);width:100px;}
+.td-d{text-align:right;font-size:11px;color:var(--t3);width:90px;}
+.td-empty{text-align:center;color:var(--t3);padding:36px;font-family:var(--serif);font-size:13px;letter-spacing:2px;}
 
-  /* ── 스토리 단계 ── */
-  .phase-badge {
-    display: inline-block;
-    padding: 0.4rem 1rem;
-    background: var(--ink); color: var(--gold);
-    border-radius: 20px; font-size: 0.9rem; margin-top: 0.5rem;
-  }
+/* 캐릭터 모달 */
+.backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;
+  align-items:center;justify-content:center;}
+.backdrop.open{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--gold3);border-radius:4px;
+  width:min(780px,95vw);max-height:90vh;display:flex;flex-direction:row;overflow:hidden;
+  box-shadow:0 16px 64px rgba(0,0,0,.7);}
+.modal-face{width:260px;flex-shrink:0;background:var(--s2);display:flex;align-items:stretch;
+  border-right:1px solid var(--gold3);overflow:hidden;}
+.modal-face img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
+.modal-face-ph{width:100%;display:flex;align-items:center;justify-content:center;
+  font-size:5rem;color:var(--t3);}
+.modal-right{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.modal-head{display:flex;align-items:center;gap:.8rem;padding:1.1rem 1.3rem .8rem;
+  border-bottom:1px solid var(--gold3);}
+.modal-name{font-family:var(--serif);font-size:1.1rem;color:var(--gold);flex:1;font-weight:500;}
+.modal-role{font-size:.78rem;color:var(--jade);margin-top:.2rem;}
+.modal-x{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--t3);
+  padding:.25rem .5rem;border-radius:4px;}
+.modal-x:hover{background:var(--s3);color:var(--t1);}
+.modal-body{padding:1rem 1.3rem 1.4rem;overflow-y:auto;flex:1;font-size:.88rem;color:var(--t2);line-height:1.8;}
+.modal-body h2,.modal-body h3{color:var(--gold2);margin:1rem 0 .4rem;font-size:.95rem;font-family:var(--serif);}
+.modal-body h2:first-child{display:none;}
+.modal-body p{margin:.3rem 0;} .modal-body ul{padding-left:1.2rem;margin:.3rem 0;}
+.modal-body li{line-height:1.8;} .modal-body strong{color:var(--t1);}
+.modal-body hr{border:none;border-top:1px solid var(--t4);margin:.7rem 0;}
 
-  /* ── 푸터 ── */
-  .footer {
-    text-align: center; padding: 1.5rem;
-    color: #aaa; font-size: 0.8rem;
-    border-top: 1px solid var(--mist); margin-top: 2rem;
-  }
+/* 챕터 모달 */
+.chap-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;
+  align-items:center;justify-content:center;}
+.chap-backdrop.open{display:flex;}
+.chap-modal{background:var(--s1);border:1px solid var(--gold3);border-radius:4px;
+  width:min(720px,94vw);max-height:90vh;display:flex;flex-direction:column;
+  box-shadow:0 16px 64px rgba(0,0,0,.7);overflow:hidden;}
+.chap-head{display:flex;align-items:center;gap:1rem;padding:1.1rem 1.4rem;
+  border-bottom:1px solid var(--gold3);flex-shrink:0;}
+.chap-num-badge{font-family:var(--serif);font-size:.75rem;color:var(--gold2);
+  border:1px solid var(--gold3);padding:3px 10px;white-space:nowrap;}
+.chap-info{flex:1;}
+.chap-htitle{font-family:var(--serif);font-size:1rem;color:var(--t1);font-weight:500;}
+.chap-meta{font-size:.75rem;color:var(--t3);margin-top:.2rem;}
+.chap-x{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--t3);
+  padding:.25rem .5rem;border-radius:4px;}
+.chap-x:hover{background:var(--s3);color:var(--t1);}
+.chap-body{overflow-y:auto;padding:2rem 2.4rem 2.4rem;flex:1;}
+.chap-body h2{font-family:var(--serif);font-size:1.2rem;color:var(--gold);margin-bottom:1.4rem;}
+.chap-body hr{border:none;border-top:1px solid var(--t4);margin:1rem 0;}
+.chap-body p{font-family:var(--serif);font-size:.95rem;color:#e8e0d0;
+  line-height:2.1;letter-spacing:.03em;}
+.chap-body p.blank{height:.6rem;}
+.chap-body em{color:#fff;font-style:italic;}
 
-  /* ── LIVE 배지 ── */
-  .live-badge {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    background: #d4edda; color: #155724;
-    padding: 0.25rem 0.75rem; border-radius: 20px;
-    font-size: 0.75rem; font-weight: bold;
-  }
-  .dot {
-    width: 8px; height: 8px; background: #28a745;
-    border-radius: 50%; animation: pulse 1.5s infinite;
-  }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+/* 빈 상태 */
+.empty-note{font-family:var(--serif);font-size:12px;color:var(--t3);
+  padding:18px 0;letter-spacing:1px;text-align:center;}
 
-  /* ── 빈 상태 ── */
-  .empty-state { text-align: center; padding: 2rem; color: #aaa; font-style: italic; }
+/* 푸터 */
+.footer{margin-top:60px;padding-top:28px;border-top:1px solid var(--gold3);text-align:center;
+  font-family:var(--serif);font-size:11px;color:var(--t3);letter-spacing:2px;padding-bottom:40px;}
+
+@media(max-width:960px){
+  .row-5{grid-template-columns:1fr 1fr!important;}
+  .row-2{grid-template-columns:1fr;}
+  .header{padding:32px 24px 28px;}
+  .wrap{padding:24px 16px 60px;}
+}
+@media(max-width:600px){.row-5{grid-template-columns:1fr!important;}}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>⚔ KY Fantasy 소설 자동화 시스템</h1>
-  <div class="subtitle">{{ now }} 기준 &nbsp;|&nbsp; <span class="live-badge"><span class="dot"></span> LIVE</span></div>
+<header class="header">
+  <div class="header-deco">天</div>
+  <p class="header-eyebrow">Fantasy Novel · 作業現況</p>
+  <h1>{{ progress.get('novel_title','천서의 아이') }}</h1>
+  <span class="header-genre">역사 판타지</span>
+  <div class="header-rule"></div>
+  <div class="header-meta">
+    <span><span class="meta-label">진행</span><span class="meta-val">{{ done_ch }} / {{ total_ch }} 장 ({{ pct }}%)</span></span>
+    <span><span class="meta-label">총 자수</span><span class="meta-val">{{ '{:,}'.format(total_chars) }}자</span></span>
+    <span><span class="meta-label">현재 막</span><span class="meta-val">{{ progress.get('story_phase','—') }}</span></span>
+    <span><span class="meta-label">집필 모델</span><span class="meta-val">Claude Sonnet 4.6</span></span>
+    <span><span class="meta-label">갱신</span><span class="meta-val">{{ now }}</span></span>
+  </div>
 </header>
 
-<div class="container">
+<div class="wrap">
 
-  <!-- ① 소설 정보 카드 (커버 이미지 + 우측 정보) -->
-  <div class="card novel-card">
-    <!-- 왼쪽: 커버 이미지 -->
-    <div class="novel-cover">
-      <img
-        src="{{ novel.cover_image_url }}"
-        alt="{{ novel.title }} 커버"
-        onerror="this.src='/static/images/default-cover.jpg'"
-      >
+  <!-- 통계 5칸 -->
+  <div class="row-5">
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="stat-eyebrow">完成 章</p>
+      <p class="stat-val">{{ done_ch }}</p>
+      <p class="stat-sub">목표 {{ total_ch }} 장</p>
+      <div class="prog-row"><div class="prog-track"><div class="prog-fill" style="width:{{ pct }}%"></div></div>
+      <span class="prog-pct">{{ pct }}%</span></div>
     </div>
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="stat-eyebrow">總 字數</p>
+      <p class="stat-val jade">{{ '{:,}'.format(total_chars) }}</p>
+      <p class="stat-sub">평균 {{ '{:,}'.format(avg_chars) }}자 / 장</p>
+    </div>
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="stat-eyebrow">推定 完成 字數</p>
+      <p class="stat-val pearl">{{ '{:,}'.format(avg_chars * total_ch) }}</p>
+      <p class="stat-sub">평균 자수 기준</p>
+    </div>
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="stat-eyebrow">章當 目標</p>
+      <p class="stat-val pearl">6,500</p>
+      <p class="stat-sub">5,000 – 8,000자</p>
+    </div>
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="stat-eyebrow">잔여 章</p>
+      <p class="stat-val crimson">{{ total_ch - done_ch }}</p>
+      <p class="stat-sub">{{ progress.get('story_phase','—')[:8] }}</p>
+    </div>
+  </div>
 
-    <!-- 오른쪽: 소설 정보 -->
-    <div class="novel-info">
-      <div class="novel-title-main">{{ novel.title }}</div>
-      {% if novel.subtitle %}
-        <div class="novel-subtitle">{{ novel.subtitle }}</div>
-      {% endif %}
-      {% if novel.genre %}
-        <div class="novel-genre">{{ novel.genre }}</div>
-      {% endif %}
-      {% if novel.synopsis %}
-        <div class="novel-synopsis">{{ novel.synopsis }}</div>
-      {% endif %}
-
-      <div class="novel-meta-row">
-        <!-- 상태 배지 -->
-        {% set s = novel.status %}
-        {% if s == 'writing' %}
-          <span class="status-badge status-writing">집필 중</span>
-        {% elif s == 'completed' %}
-          <span class="status-badge status-completed">완성</span>
-        {% elif s == 'paused' %}
-          <span class="status-badge status-paused">잠시 중단</span>
-        {% else %}
-          <span class="status-badge status-draft">초고</span>
-        {% endif %}
-
-        <span class="novel-progress-text">
-          {{ novel.completed_chapters }} / {{ novel.total_chapters }} 챕터 &nbsp;·&nbsp; {{ novel.progress_percent }}%
-        </span>
-
-        {% if novel.current_arc_title %}
-          <span class="novel-arc">{{ novel.current_arc_title }}</span>
-        {% endif %}
+  <!-- 작업 현황 -->
+  <div class="row-1">
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="sec-title">작업 파일 현황</p>
+      <div class="status-grid">
+        <div class="status-row"><span class="status-row-label">세계관 · 架構</span><span class="seal seal-on">완 료</span></div>
+        <div class="status-row"><span class="status-row-label">캐릭터 상태</span><span class="seal seal-on">완 료</span></div>
+        <div class="status-row"><span class="status-row-label">챕터 목차</span><span class="seal seal-on">완 료</span></div>
+        <div class="status-row"><span class="status-row-label">집필 진행</span><span class="seal seal-on">진 행</span></div>
       </div>
     </div>
   </div>
 
-  <!-- ② 전체 진행률 바 -->
-  <div class="card progress-section">
-    <div class="progress-header">
-      <div>
-        <div class="progress-title">전체 진행률</div>
-        <div class="stat-label">{{ novel.completed_chapters }} / {{ novel.total_chapters }} 챕터 완료</div>
-      </div>
-      <div class="progress-pct">{{ completion_pct }}%</div>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" style="width: {{ completion_pct }}%"></div>
-    </div>
-    <div class="milestone-row">
-      {% for m in [5, 10, 15, 20, 25] %}
-        <div class="milestone {% if progress.get('milestones', {}).get('chapter_' ~ m) %}done{% endif %}">
-          {{ m }}챕터<br>{% if progress.get('milestones', {}).get('chapter_' ~ m) %}✓{% endif %}
-        </div>
-      {% endfor %}
+  <!-- 장별 자수 -->
+  <div class="row-1">
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="sec-title">장별 자수</p>
+      <div class="chart-wrap"><canvas id="chapterChart"></canvas></div>
     </div>
   </div>
 
-  <!-- ③ 주요 지표 3개 -->
-  <div class="grid-3">
-
-    <!-- 현재 단계 -->
-    <div class="card">
-      <h2>스토리 단계</h2>
-      <div class="stat-big">{{ novel.current_chapter }}챕터</div>
-      <div class="stat-label">현재 집필 중</div>
-      <div class="phase-badge">{{ progress.get('story_phase', novel.current_arc_title or '초기화') }}</div>
-    </div>
-
-    <!-- 품질 점수 -->
-    <div class="card">
-      <h2>품질 점수</h2>
-      <div class="stat-big">{{ novel.quality_score }}<span style="font-size:1rem">/100</span></div>
-      <div class="stat-label">평균 품질</div>
-      {% set mode = quality.get('current_mode', '표준 모드') %}
-      {% if '최고' in mode %}
-        <span class="stat-badge badge-excellent">{{ mode }}</span>
-      {% elif '고성능' in mode %}
-        <span class="stat-badge badge-high">{{ mode }}</span>
-      {% elif '표준' in mode %}
-        <span class="stat-badge badge-standard">{{ mode }}</span>
-      {% else %}
-        <span class="stat-badge badge-focus">{{ mode }}</span>
-      {% endif %}
-    </div>
-
-    <!-- 시스템 헬스 -->
-    <div class="card">
-      <h2>시스템 헬스</h2>
-      <div class="health-gauge">
-        {% set hs = novel.health_score %}
-        <div class="health-circle {% if hs >= 90 %}health-ok{% elif hs >= 70 %}health-warn{% else %}health-err{% endif %}">
-          {{ hs }}
-        </div>
-        <div>
-          <div class="stat-label">헬스 점수</div>
-          {% if hs >= 90 %}
-            <div style="color: var(--jade); font-size: 0.8rem; margin-top: 0.5rem;">✓ 정상 작동 중</div>
-          {% else %}
-            <div style="color: var(--crimson); font-size: 0.8rem; margin-top: 0.5rem;">⚠ 점검 필요</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ④ 챕터 목록 + 캐릭터 -->
-  <div class="grid-2">
-
-    <div class="card">
-      <h2>완성된 챕터 ({{ chapters | length }}개)</h2>
-      <div class="chapter-list">
-        {% if chapters %}
-          {% for ch in chapters | reverse %}
-            <a class="chapter-item" href="/chapter/{{ ch.number }}">
-              <div class="chapter-num">챕터 {{ ch.number }}</div>
-              <div class="chapter-info">
-                <div class="chapter-preview">{{ ch.preview[:100] }}...</div>
-                <div class="chapter-meta">{{ ch.char_count | int }}자</div>
-              </div>
-            </a>
-          {% endfor %}
-        {% else %}
-          <div class="empty-state">아직 생성된 챕터가 없습니다.<br>소설 자동화 시스템을 시작하세요.</div>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>등장인물 ({{ characters | length }}명)</h2>
+  <!-- 캐릭터 -->
+  <div class="row-1">
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="sec-title">캐릭터 · 人物</p>
       {% if characters %}
+      <div class="char-grid">
         {% for char in characters %}
-          <div class="char-item">
-            <div class="char-name">{{ char.name }}</div>
-            <div class="char-preview">{{ char.preview[:150] }}</div>
+        <div class="char-card" onclick="openCharModal(this)"
+             data-name="{{ char.display_name }}"
+             data-role="{{ char.role }}"
+             data-image="{{ char.image_url }}"
+             data-content="{{ char.content | e }}">
+          {% if char.image_url %}
+          <img class="cp-img" src="{{ char.image_url }}" alt="{{ char.display_name }}">
+          {% else %}
+          <div class="cp-placeholder">👤</div>
+          {% endif %}
+          <div class="cp-label">
+            <div class="cp-name">{{ char.display_name }}</div>
+            <div class="cp-role">{{ char.role }}</div>
           </div>
+        </div>
         {% endfor %}
+      </div>
       {% else %}
-        <div class="empty-state">캐릭터 바이블이 아직 생성되지 않았습니다.</div>
+      <p class="empty-note">캐릭터 정보가 없습니다</p>
       {% endif %}
     </div>
+  </div>
 
+  <!-- 전체 장 목록 -->
+  <div class="row-1">
+    <div class="card"><div class="cc-tr"></div><div class="cc-bl"></div>
+      <p class="sec-title">전체 장 목록 · 章目錄</p>
+      <div style="overflow-x:auto;">
+        <table class="chap-table">
+          <thead><tr>
+            <th>장 번호</th><th>제목 / 미리보기</th>
+            <th style="text-align:right;">자수</th>
+            <th style="text-align:right;">수정일</th>
+          </tr></thead>
+          <tbody>
+            {% if chapters %}
+            {% for ch in chapters %}
+            <tr class="chap-row" onclick="openChapModal({{ ch.number }})">
+              <td class="td-n"><span class="num-badge">제 {{ ch.number }} 장</span></td>
+              <td class="td-p">{{ ch.preview }}</td>
+              <td class="td-w">{{ '{:,}'.format(ch.char_count) }}자</td>
+              <td class="td-d">{{ ch.date }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="4" class="td-empty">아직 작성된 장이 없습니다</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 </div>
 
 <div class="footer">
-  KY Fantasy 소설 자동화 시스템 &nbsp;|&nbsp; Claude Sonnet 4.6 &nbsp;|&nbsp;
-  마지막 업데이트: {{ progress.get('last_updated', now) }} &nbsp;|&nbsp;
-  <a href="/api/status" style="color: var(--gold);">API 상태</a> &nbsp;|&nbsp;
-  <a href="/api/novels" style="color: var(--gold);">novels API</a>
+  天書의 아이 &nbsp;·&nbsp; Claude Sonnet 4.6 &nbsp;·&nbsp; {{ now }} 기준
+</div>
+
+<!-- 챕터 내용 데이터 (hidden) -->
+{% for ch in chapters %}
+<script type="application/json" id="chap-{{ ch.number }}">{{ {"title": ch.title, "chars": ch.char_count, "date": ch.date, "content": ch.content} | tojson }}</script>
+{% endfor %}
+
+<!-- 캐릭터 모달 -->
+<div class="backdrop" id="charBackdrop" onclick="closeCharOnBackdrop(event)">
+  <div class="modal">
+    <div class="modal-face" id="modalFace"></div>
+    <div class="modal-right">
+      <div class="modal-head">
+        <div style="flex:1">
+          <div class="modal-name" id="modalName"></div>
+          <div class="modal-role" id="modalRole"></div>
+        </div>
+        <button class="modal-x" onclick="closeCharModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 챕터 모달 -->
+<div class="chap-backdrop" id="chapBackdrop" onclick="closeChapOnBackdrop(event)">
+  <div class="chap-modal">
+    <div class="chap-head">
+      <span class="chap-num-badge" id="chapNum"></span>
+      <div class="chap-info">
+        <div class="chap-htitle" id="chapTitle"></div>
+        <div class="chap-meta" id="chapMeta"></div>
+      </div>
+      <button class="chap-x" onclick="closeChapModal()">✕</button>
+    </div>
+    <div class="chap-body" id="chapBody"></div>
+  </div>
 </div>
 
 <script>
-  setTimeout(() => location.reload(), 30000);
-</script>
+// ── 차트 ──
+new Chart(document.getElementById('chapterChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: {{ chart_labels | safe }},
+    datasets: [{ label:'자수', data: {{ chart_data | safe }},
+      backgroundColor:'rgba(196,154,60,.25)', borderColor:'rgba(196,154,60,.8)', borderWidth:1 }]
+  },
+  options: { responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:false } },
+    scales:{
+      x:{ ticks:{color:'#5a4e38',font:{size:10}}, grid:{color:'rgba(74,56,18,.2)'} },
+      y:{ ticks:{color:'#5a4e38',font:{size:10}}, grid:{color:'rgba(74,56,18,.2)'} }
+    }
+  }
+});
 
+// ── 캐릭터 모달 ──
+function mdToHtml(md) {
+  return md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^#{1,2}\s(.+)$/gm,'<h2>$1</h2>')
+    .replace(/^#{3,}\s(.+)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^---+$/gm,'<hr>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)/g,'<ul>$1</ul>')
+    .replace(/<\/ul>\s*<ul>/g,'')
+    .replace(/\n{2,}/g,'</p><p>')
+    .replace(/^(?!<[hul]|<hr)(.+)$/gm,'<p>$1</p>');
+}
+function openCharModal(card) {
+  const name  = card.dataset.name;
+  const role  = card.dataset.role;
+  const image = card.dataset.image;
+  const body  = card.dataset.content;
+  document.getElementById('modalName').textContent = name;
+  document.getElementById('modalRole').textContent = role;
+  document.getElementById('modalBody').innerHTML   = mdToHtml(body);
+  const face = document.getElementById('modalFace');
+  face.innerHTML = image
+    ? `<img src="${image}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:top center;">`
+    : `<div class="modal-face-ph">👤</div>`;
+  document.getElementById('charBackdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCharModal() {
+  document.getElementById('charBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeCharOnBackdrop(e) {
+  if (e.target === document.getElementById('charBackdrop')) closeCharModal();
+}
+
+// ── 챕터 모달 ──
+function contentToHtml(text) {
+  const lines = text.split('\n');
+  return lines.map(line => {
+    if (line.startsWith('# ')) return `<h2>${line.slice(2)}</h2>`;
+    if (/^---+$/.test(line.trim())) return '<hr>';
+    if (line.trim() === '') return '<p class="blank"></p>';
+    return `<p>${line.replace(/\*(.+?)\*/g,'<em>$1</em>')}</p>`;
+  }).join('');
+}
+function openChapModal(num) {
+  const raw = document.getElementById('chap-' + num);
+  if (!raw) return;
+  const d = JSON.parse(raw.textContent);
+  document.getElementById('chapNum').textContent   = '제 ' + num + ' 장';
+  document.getElementById('chapTitle').textContent = d.title;
+  document.getElementById('chapMeta').textContent  = d.chars.toLocaleString() + '자  ·  ' + d.date;
+  document.getElementById('chapBody').innerHTML    = contentToHtml(d.content);
+  document.getElementById('chapBody').scrollTop   = 0;
+  document.getElementById('chapBackdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeChapModal() {
+  document.getElementById('chapBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeChapOnBackdrop(e) {
+  if (e.target === document.getElementById('chapBackdrop')) closeChapModal();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeCharModal(); closeChapModal(); }
+});
+</script>
 </body>
 </html>
