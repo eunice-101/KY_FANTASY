@@ -1,0 +1,31 @@
+name: Validate
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      - name: Syntax check
+        run: |
+          python -m py_compile fantasy_generator.py
+          python -m py_compile dashboard.py
+          echo "Syntax OK"
+
+      - name: Import check
+        run: |
+          python -c "import fantasy_generator; print('fantasy_generator import OK')"
+          python -c "import dashboard; print('dashboard import OK')"

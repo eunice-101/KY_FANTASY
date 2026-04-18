@@ -7,6 +7,7 @@ import anthropic
 import argparse
 import json
 import logging
+import logging.handlers
 import os
 import re
 import sys
@@ -15,12 +16,13 @@ from pathlib import Path
 from datetime import datetime
 
 _LOG_PATH = Path(__file__).parent / "fantasy_generator.log"
+_log_handler = logging.handlers.RotatingFileHandler(
+    _LOG_PATH, maxBytes=1_000_000, backupCount=3, encoding="utf-8"
+)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
-    handlers=[
-        logging.FileHandler(_LOG_PATH, encoding="utf-8"),
-    ],
+    handlers=[_log_handler],
 )
 
 
@@ -479,7 +481,7 @@ def quick_start(project: dict) -> dict:
 # 6. 전체 챕터 순차 자동 작성
 # ─────────────────────────────────────────────
 
-def write_all_chapters(project: dict):
+def write_all_chapters(project: dict, auto_yes: bool = False):
     """플롯의 모든 챕터를 순서대로 자동 작성합니다."""
     plot = project.get("plot")
     if not plot:
@@ -495,9 +497,10 @@ def write_all_chapters(project: dict):
         return
 
     print(f"\n총 {total}챕터 중 {len(pending)}개 작성 예정: {pending}")
-    ans = input("시작할까요? (y/n): ").strip().lower()
-    if ans != "y":
-        return
+    if not auto_yes:
+        ans = input("시작할까요? (y/n): ").strip().lower()
+        if ans != "y":
+            return
 
     for num in pending:
         content = write_chapter(
@@ -768,11 +771,14 @@ def _parse_args():
     q.add_argument("theme", nargs="?", default="", help="소설 테마")
     q.add_argument("--roles", default="주인공,악당", help="캐릭터 역할 (쉼표 구분)")
     q.add_argument("--no-chapters", action="store_true", help="챕터 작성 건너뜀")
+    q.add_argument("--yes", "-y", action="store_true", help="확인 프롬프트 자동 승인")
 
     wc = sub.add_parser("chapter", help="특정 챕터 작성")
     wc.add_argument("num", type=int, help="챕터 번호")
 
-    sub.add_parser("all-chapters", help="전체 챕터 자동 작성")
+    ac = sub.add_parser("all-chapters", help="전체 챕터 자동 작성")
+    ac.add_argument("--yes", "-y", action="store_true", help="확인 프롬프트 자동 승인")
+
     sub.add_parser("export", help="소설 .txt 내보내기")
     sub.add_parser("status", help="현재 프로젝트 상태 출력")
 
@@ -795,7 +801,7 @@ def _cli(args):
         project["plot"] = generate_plot(project["world"], project["characters"])
         save_project(project)
         if not args.no_chapters:
-            write_all_chapters(project)
+            write_all_chapters(project, auto_yes=args.yes)
 
     elif args.cmd == "chapter":
         if "plot" not in project:
@@ -810,7 +816,7 @@ def _cli(args):
         if "plot" not in project:
             print("오류: 플롯이 없습니다.")
             sys.exit(1)
-        write_all_chapters(project)
+        write_all_chapters(project, auto_yes=args.yes)
 
     elif args.cmd == "export":
         if not project.get("chapters"):
