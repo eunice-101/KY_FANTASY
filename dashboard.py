@@ -602,6 +602,8 @@ body {{
   <div class="header-rule"></div>
 
   <div class="header-meta">
+    <span><span class="meta-label">진행</span><span class="meta-val">{written} / {target if target else '?'} 장 ({ch_pct}%)</span></span>
+    <span><span class="meta-label">총 자수</span><span class="meta-val">{total_w:,}자</span></span>
     <span><span class="meta-label">架構 모델</span><span class="meta-val">{data['arch_model'] or '—'}</span></span>
     <span><span class="meta-label">執筆 모델</span><span class="meta-val">{data['final_model'] or '—'}</span></span>
     <span><span class="meta-label">저장 경로</span><span class="meta-val">{data['filepath'] or '미설정'}</span></span>

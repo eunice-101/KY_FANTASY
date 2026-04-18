@@ -387,16 +387,35 @@ def write_chapter(world: dict, characters: list[dict], plot: dict, chapter_num: 
 - 챕터 제목을 맨 위에 표시
 - 소설 본문만 작성 (설명 없이)"""
 
-    full_text = ""
-    with get_client().messages.stream(
-        model=MODEL,
-        max_tokens=3000,
+    api_kwargs = dict(
+        model=MODEL, max_tokens=3000,
         system=_CACHE_SYS,
         messages=[{"role": "user", "content": prompt}],
-    ) as stream:
-        for text in stream.text_stream:
-            print(text, end="", flush=True)
-            full_text += text
+    )
+
+    full_text = ""
+    for attempt in range(_MAX_RETRIES):
+        full_text = ""
+        try:
+            with get_client().messages.stream(**api_kwargs) as stream:
+                for text in stream.text_stream:
+                    print(text, end="", flush=True)
+                    full_text += text
+            break
+        except Exception as e:
+            print(f"\n  스트리밍 오류 ({attempt+1}/{_MAX_RETRIES}): {e}")
+            if attempt < _MAX_RETRIES - 1:
+                wait = 2 ** attempt * 3
+                print(f"  {wait}초 후 재시도...")
+                time.sleep(wait)
+            else:
+                print("  비스트리밍 모드로 폴백합니다...")
+                try:
+                    response = _with_retry(get_client().messages.create, **api_kwargs)
+                    full_text = next(b.text for b in response.content if b.type == "text")
+                    print(full_text)
+                except Exception as e2:
+                    print(f"  폴백 실패: {e2}")
 
     print("\n" + "─" * 50)
     print(f"  {chapter_num}챕터 작성 완료! ({len(full_text)}자)")
@@ -523,6 +542,16 @@ def export_novel(project: dict):
 # 6. 대화형 이야기 계속하기
 # ─────────────────────────────────────────────
 
+_INTERACTIVE_WINDOW = 10  # 유지할 최대 메시지 수 (user+assistant 쌍 기준)
+
+
+def _trim_messages(messages: list, anchor: dict) -> list:
+    """첫 메시지(설정)는 유지하고 나머지는 최근 _INTERACTIVE_WINDOW개만 남깁니다."""
+    if len(messages) <= _INTERACTIVE_WINDOW + 1:
+        return messages
+    return [anchor] + messages[-(  _INTERACTIVE_WINDOW):]
+
+
 def interactive_story(project: dict):
     world = project.get("world", {})
     characters = project.get("characters", [])
@@ -538,15 +567,12 @@ def interactive_story(project: dict):
     print("이야기를 이어나가거나 방향을 제시하세요. ('종료' 입력 시 메뉴로)")
     print("─" * 50)
 
-    messages = [
-        {"role": "user", "content": f"다음 설정으로 대화형 판타지 소설을 진행합니다:\n{context}\n\n이야기를 시작해주세요."}
-    ]
+    anchor = {"role": "user", "content": f"다음 설정으로 대화형 판타지 소설을 진행합니다:\n{context}\n\n이야기를 시작해주세요."}
+    messages = [anchor]
 
     with get_client().messages.stream(
-        model=MODEL,
-        max_tokens=800,
-        system=_CACHE_SYS,
-        messages=messages,
+        model=MODEL, max_tokens=800,
+        system=_CACHE_SYS, messages=messages,
     ) as stream:
         response_text = ""
         for text in stream.text_stream:
@@ -564,13 +590,12 @@ def interactive_story(project: dict):
             continue
 
         messages.append({"role": "user", "content": user_input})
+        messages = _trim_messages(messages, anchor)
 
         print("\n> ", end="")
         with get_client().messages.stream(
-            model=MODEL,
-            max_tokens=600,
-            system=_CACHE_SYS,
-            messages=messages,
+            model=MODEL, max_tokens=600,
+            system=_CACHE_SYS, messages=messages,
         ) as stream:
             response_text = ""
             for text in stream.text_stream:
