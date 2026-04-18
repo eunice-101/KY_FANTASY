@@ -69,7 +69,7 @@ def collect_novel_data(config):
 
     for key, fname, preview_key in [
         ("has_architecture", "novel_architecture.txt", "architecture_preview"),
-        ("has_blueprint", "chapter_blueprint.txt", "blueprint_preview"),
+        ("has_blueprint", "Novel_directory.txt", "blueprint_preview"),
         ("has_characters", "character_state.txt", "character_preview"),
     ]:
         fpath = os.path.join(filepath, fname)

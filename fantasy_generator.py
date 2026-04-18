@@ -6,7 +6,16 @@ Claude API를 사용하여 세계관, 캐릭터, 플롯, 챕터를 자동 생성
 import anthropic
 import json
 import os
+import re
 from pathlib import Path
+
+
+def _parse_json(text: str) -> dict:
+    """LLM 응답에서 JSON 객체를 추출합니다."""
+    match = re.search(r'\{[\s\S]*\}', text)
+    if not match:
+        raise ValueError(f"JSON 객체를 찾을 수 없습니다: {text[:200]}")
+    return json.loads(match.group())
 
 MODEL = "claude-opus-4-6"
 
@@ -84,10 +93,7 @@ JSON만 반환하세요."""
     )
 
     text = next(b.text for b in response.content if b.type == "text")
-    # JSON 파싱
-    start = text.find("{")
-    end = text.rfind("}") + 1
-    world = json.loads(text[start:end])
+    world = _parse_json(text)
     print(f"✅ '{world['world_name']}' 세계관 생성 완료!")
     return world
 
@@ -132,9 +138,7 @@ JSON만 반환하세요."""
     )
 
     text = next(b.text for b in response.content if b.type == "text")
-    start = text.find("{")
-    end = text.rfind("}") + 1
-    character = json.loads(text[start:end])
+    character = _parse_json(text)
     print(f"✅ 캐릭터 '{character['name']}' 생성 완료!")
     return character
 
@@ -201,9 +205,7 @@ def generate_plot(world: dict, characters: list[dict]) -> dict:
     )
 
     text = next(b.text for b in response.content if b.type == "text")
-    start = text.find("{")
-    end = text.rfind("}") + 1
-    plot = json.loads(text[start:end])
+    plot = _parse_json(text)
     print(f"✅ 플롯 '{plot['title']}' 생성 완료! (총 {plot['total_chapters']}챕터)")
     return plot
 
