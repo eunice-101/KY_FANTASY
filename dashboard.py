@@ -144,16 +144,17 @@ def generate_html(data):
     est_tot  = avg_w * target if avg_w and target else 0
 
     ch_pct, ch_prog_html = progress_bar(written, target)
-    w_pct,  w_prog_html  = progress_bar(total_w, est_tot)
+    word_target = data["word_per_chapter"] * target if data["word_per_chapter"] and target else est_tot
+    w_pct,  w_prog_html  = progress_bar(total_w, word_target)
 
     # 챕터 표
     ch_rows = ""
     for ch in chapters:
         ch_rows += f"""
           <tr>
-            <td class="td-n"><span class="num-badge">第{ch['num']}章</span></td>
+            <td class="td-n"><span class="num-badge">제{ch['num']}장</span></td>
             <td class="td-p">{ch['preview'] or '—'}</td>
-            <td class="td-w">{ch['word_count']:,} 字</td>
+            <td class="td-w">{ch['word_count']:,}자</td>
             <td class="td-d">{ch['modified']}</td>
           </tr>"""
     if not ch_rows:
@@ -164,9 +165,9 @@ def generate_html(data):
     for ch in reversed(chapters[-5:]):
         recent_html += f"""
         <div class="scroll-entry">
-          <span class="scroll-n">第{ch['num']}章</span>
+          <span class="scroll-n">제{ch['num']}장</span>
           <span class="scroll-p">{ch['preview'] or '—'}</span>
-          <span class="scroll-w">{ch['word_count']:,} 字</span>
+          <span class="scroll-w">{ch['word_count']:,}자</span>
           <span class="scroll-d">{ch['modified']}</span>
         </div>"""
     if not recent_html:
@@ -178,16 +179,34 @@ def generate_html(data):
     bp_html   = preview_box(data["blueprint_preview"],    "챕터 목차가 아직 생성되지 않았습니다")
 
     # 차트 데이터
-    c_labels = json.dumps([f"第{ch['num']}章" for ch in chapters], ensure_ascii=False)
+    c_labels = json.dumps([f"제{ch['num']}장" for ch in chapters], ensure_ascii=False)
     c_data   = json.dumps([ch["word_count"] for ch in chapters])
 
     # 챕터당 목표 달성 상태
     wpch = data["word_per_chapter"]
     if wpch and avg_w:
         wpch_status = "달성" if avg_w >= wpch else "미달"
-        wpch_cls    = "gold" if avg_w >= wpch else "crimson"
+        wpch_cls    = "jade" if avg_w >= wpch else "crimson"
     else:
-        wpch_status, wpch_cls = "—", "dim"
+        wpch_status, wpch_cls = "—", "pearl"
+
+    # 예상 완료일
+    if written >= 2 and target > written:
+        dates = sorted({ch["modified"] for ch in chapters})
+        if len(dates) >= 2:
+            first = datetime.strptime(dates[0], "%Y.%m.%d")
+            last  = datetime.strptime(dates[-1], "%Y.%m.%d")
+            days_elapsed = max((last - first).days, 1)
+            pace = written / days_elapsed  # 장/일
+            days_left = (target - written) / pace
+            est_done = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            from datetime import timedelta
+            est_done = est_done + timedelta(days=days_left)
+            est_done_str = est_done.strftime("%Y.%m.%d")
+        else:
+            est_done_str = "데이터 부족"
+    else:
+        est_done_str = "—"
 
     return f"""<!DOCTYPE html>
 <html lang="ko">
@@ -545,8 +564,11 @@ body {{
 /* ═══════════════════════════════════════════════
    반응형
 ═══════════════════════════════════════════════ */
+@media (max-width: 1200px) {{
+  .row-4 {{ grid-template-columns: repeat(3,1fr) !important; }}
+}}
 @media (max-width: 960px) {{
-  .row-4 {{ grid-template-columns: 1fr 1fr; }}
+  .row-4 {{ grid-template-columns: 1fr 1fr !important; }}
   .row-2 {{ grid-template-columns: 1fr; }}
   .header {{ padding: 36px 28px 32px; }}
   .wrap {{ padding: 28px 20px 60px; }}
@@ -583,8 +605,8 @@ body {{
 <!-- ═════════════════════  본문  ═════════════════════ -->
 <div class="wrap">
 
-  <!-- 통계 카드 4열 -->
-  <div class="row-4">
+  <!-- 통계 카드 5열 -->
+  <div class="row-4" style="grid-template-columns:repeat(5,1fr);">
 
     <div class="card">
       <div class="card-corner-tr"></div><div class="card-corner-bl"></div>
@@ -612,8 +634,15 @@ body {{
     <div class="card">
       <div class="card-corner-tr"></div><div class="card-corner-bl"></div>
       <p class="stat-eyebrow">章當 目標 字數</p>
-      <p class="stat-val {'jade' if wpch_cls == 'gold' else 'crimson' if wpch_cls == 'crimson' else 'pearl'}">{wpch:,}</p>
+      <p class="stat-val {wpch_cls}">{wpch:,}</p>
       <p class="stat-sub">{wpch_status}</p>
+    </div>
+
+    <div class="card">
+      <div class="card-corner-tr"></div><div class="card-corner-bl"></div>
+      <p class="stat-eyebrow">예상 완료일</p>
+      <p class="stat-val pearl" style="font-size:26px;letter-spacing:0;">{est_done_str}</p>
+      <p class="stat-sub">{'잔여 ' + str(target - written) + '장' if target > written else '완료' if written >= target and target else '—'}</p>
     </div>
 
   </div>
