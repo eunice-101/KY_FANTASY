@@ -83,6 +83,22 @@ def _get_novel_dir() -> Path | None:
     return None
 
 
+def _sync_config(plot: dict):
+    """생성된 플롯 정보를 AI_NovelGenerator config.json에 반영합니다."""
+    try:
+        with open(CONFIG_PATH, encoding="utf-8") as f:
+            cfg = json.load(f)
+        cfg.setdefault("other_params", {})
+        cfg["other_params"]["topic"]        = plot.get("title", "")
+        cfg["other_params"]["genre"]        = ", ".join(plot.get("genre_tags", ["판타지"]))
+        cfg["other_params"]["chapter_num"]  = str(plot.get("total_chapters", 0))
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+        print("  config.json 업데이트 완료.")
+    except Exception as e:
+        print(f"  config.json 업데이트 실패: {e}")
+
+
 def _sync_to_novel_dir(project: dict):
     """생성된 데이터를 AI_NovelGenerator 파일 구조로 동기화합니다."""
     novel_dir = _get_novel_dir()
@@ -298,6 +314,7 @@ def generate_plot(world: dict, characters: list[dict]) -> dict:
     text = next(b.text for b in response.content if b.type == "text")
     plot = _parse_json(text)
     print(f"  플롯 '{plot['title']}' 생성 완료! (총 {plot['total_chapters']}챕터)")
+    _sync_config(plot)
     return plot
 
 
@@ -363,7 +380,44 @@ def write_chapter(world: dict, characters: list[dict], plot: dict, chapter_num: 
 
 
 # ─────────────────────────────────────────────
-# 5. 전체 챕터 순차 자동 작성
+# 5. 원클릭 전체 자동 생성
+# ─────────────────────────────────────────────
+
+def quick_start(project: dict) -> dict:
+    """테마 하나로 세계관→캐릭터→플롯→전체 챕터를 자동 생성합니다."""
+    print("\n" + "═" * 50)
+    print("  원클릭 자동 생성 모드")
+    print("═" * 50)
+
+    theme = input("테마를 입력하세요 (엔터 = 자동): ").strip()
+    roles = input("생성할 캐릭터 역할 (엔터 = '주인공,악당'): ").strip()
+    roles = [r.strip() for r in roles.split(",")] if roles else ["주인공", "악당"]
+    write_ch = input("플롯 생성 후 전체 챕터도 자동 작성할까요? (y/n): ").strip().lower() == "y"
+
+    print("\n[1/3] 세계관 생성 중...")
+    project["world"] = generate_world(theme)
+    save_project(project)
+
+    print(f"\n[2/3] 캐릭터 생성 중... ({', '.join(roles)})")
+    project["characters"] = []
+    for role in roles:
+        char = generate_character(project["world"], role)
+        project["characters"].append(char)
+        save_project(project)
+
+    print("\n[3/3] 플롯 생성 중...")
+    project["plot"] = generate_plot(project["world"], project["characters"])
+    save_project(project)
+
+    if write_ch:
+        write_all_chapters(project)
+
+    print("\n자동 생성 완료!")
+    return project
+
+
+# ─────────────────────────────────────────────
+# 6. 전체 챕터 순차 자동 작성
 # ─────────────────────────────────────────────
 
 def write_all_chapters(project: dict):
@@ -534,6 +588,7 @@ def print_menu(project: dict):
 ║  6. 대화형 이야기 모드                   ║
 ║  7. 소설 내보내기 (.txt)                 ║
 ║  8. 저장 / 불러오기                      ║
+║  9. 원클릭 자동 생성 (처음부터 전체)     ║
 ║  0. 종료                                ║
 ╚══════════════════════════════════════════╝""")
 
@@ -628,6 +683,9 @@ def main():
                     print("  불러왔습니다.")
                 else:
                     print(f"  '{fname}' 파일을 찾을 수 없습니다.")
+
+        elif choice == "9":
+            project = quick_start(project)
 
         elif choice == "0":
             print("\n소설 생성을 종료합니다.")
