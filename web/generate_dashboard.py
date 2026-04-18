@@ -7,8 +7,8 @@ from pathlib import Path
 from datetime import datetime
 
 BASE   = Path(__file__).parent.parent          # KY_Fantasy/
-OUT    = Path("C:/Users/10_17/Desktop/Fantasy/dashboard.html")
-IMG    = "../KY_Fantasy/web/static/images"     # dashboard.html 기준 상대경로
+OUT    = BASE / "docs" / "index.html"
+IMG    = "images"                              # docs/images/ 상대경로
 
 CHAR_IMAGES = {
     "seo-yuna":   f"{IMG}/seo-yoona.jpg",
@@ -612,6 +612,14 @@ function closeChapOnBackdrop(e) {{
 </script>
 </body>
 </html>"""
+
+    import shutil
+    OUT.parent.mkdir(exist_ok=True)
+    docs_img = OUT.parent / "images"
+    docs_img.mkdir(exist_ok=True)
+    src_img = BASE / "web" / "static" / "images"
+    for img_file in src_img.iterdir():
+        shutil.copy2(img_file, docs_img / img_file.name)
 
     OUT.write_text(html, encoding="utf-8")
     print(f"OK: {OUT}")
