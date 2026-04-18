@@ -621,16 +621,35 @@ def interactive_story(project: dict):
     anchor = {"role": "user", "content": f"다음 설정으로 대화형 판타지 소설을 진행합니다:\n{context}\n\n이야기를 시작해주세요."}
     messages = [anchor]
 
-    with get_client().messages.stream(
-        model=MODEL, max_tokens=800,
-        system=_CACHE_SYS, messages=messages,
-    ) as stream:
-        response_text = ""
-        for text in stream.text_stream:
-            print(text, end="", flush=True)
-            response_text += text
-    print()
+    def _stream_turn(msgs, max_tok):
+        for attempt in range(3):
+            try:
+                with get_client().messages.stream(
+                    model=MODEL, max_tokens=max_tok,
+                    system=_CACHE_SYS, messages=msgs,
+                ) as stream:
+                    text_acc = ""
+                    for chunk in stream.text_stream:
+                        print(chunk, end="", flush=True)
+                        text_acc += chunk
+                print()
+                return text_acc
+            except anthropic.RateLimitError:
+                wait = 2 ** attempt
+                print(f"\n[대기 중... {wait}s]")
+                time.sleep(wait)
+            except anthropic.APIConnectionError:
+                wait = 2 ** attempt
+                print(f"\n[연결 오류, 재시도 {attempt+1}/3... {wait}s]")
+                time.sleep(wait)
+            except Exception as e:
+                logger.error("interactive_story stream error: %s", e)
+                print(f"\n[오류: {e}]")
+                return ""
+        print("\n[응답 실패. 계속 대화하려면 입력하세요.]")
+        return ""
 
+    response_text = _stream_turn(messages, 800)
     messages.append({"role": "assistant", "content": response_text})
 
     while True:
@@ -644,17 +663,11 @@ def interactive_story(project: dict):
         messages = _trim_messages(messages, anchor)
 
         print("\n> ", end="")
-        with get_client().messages.stream(
-            model=MODEL, max_tokens=600,
-            system=_CACHE_SYS, messages=messages,
-        ) as stream:
-            response_text = ""
-            for text in stream.text_stream:
-                print(text, end="", flush=True)
-                response_text += text
-        print()
-
-        messages.append({"role": "assistant", "content": response_text})
+        response_text = _stream_turn(messages, 600)
+        if response_text:
+            messages.append({"role": "assistant", "content": response_text})
+        else:
+            messages.pop()
 
 
 # ─────────────────────────────────────────────
@@ -814,6 +827,7 @@ def _parse_args():
 
     sub.add_parser("export", help="소설 .txt 내보내기")
     sub.add_parser("status", help="현재 프로젝트 상태 출력")
+    sub.add_parser("check", help="환경 상태 확인 (API 키, 경로, 의존성)")
 
     return p.parse_args()
 
@@ -821,7 +835,7 @@ def _parse_args():
 def _cli(args):
     """비대화형 CLI 모드."""
     auto_yes = getattr(args, "yes", False)
-    if args.cmd != "status":
+    if args.cmd not in ("status", "check"):
         _ensure_setup(auto_yes=auto_yes)
     project = load_project() or {}
 
@@ -870,6 +884,49 @@ def _cli(args):
         print(f"제목: {title}")
         print(f"세계관: {worlds}  캐릭터: {chars}명  플롯: {plot}")
         print(f"챕터: {chs} / {total}")
+
+    elif args.cmd == "check":
+        import importlib
+        ok = True
+        # API key
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        if not api_key:
+            env_path = Path(".env")
+            if env_path.exists():
+                for line in env_path.read_text(encoding="utf-8").splitlines():
+                    if line.startswith("ANTHROPIC_API_KEY"):
+                        api_key = line.split("=", 1)[-1].strip().strip('"').strip("'")
+        if api_key:
+            print(f"[O] API 키: {'*' * 8}{api_key[-4:]}")
+        else:
+            print("[X] API 키: 없음  →  .env 파일 또는 환경변수 ANTHROPIC_API_KEY 설정 필요")
+            ok = False
+        # filepath
+        novel_dir = _get_novel_dir()
+        if novel_dir and novel_dir.exists():
+            print(f"[O] 저장 경로: {novel_dir}")
+        elif novel_dir:
+            print(f"[!] 저장 경로: {novel_dir}  (경로 없음 — 실행 시 자동 생성됩니다)")
+        else:
+            print("[X] 저장 경로: 미설정  →  프로그램 실행 시 자동 설정됩니다")
+        # anthropic package
+        if importlib.util.find_spec("anthropic"):
+            print("[O] anthropic 패키지: 설치됨")
+        else:
+            print("[X] anthropic 패키지: 없음  →  pip install anthropic")
+            ok = False
+        # project file
+        pf = Path("my_fantasy_novel.json")
+        if pf.exists():
+            proj = load_project() or {}
+            chs = len(proj.get("chapters", {}))
+            total = proj.get("plot", {}).get("total_chapters", "?")
+            print(f"[O] 프로젝트 파일: 존재 ({chs}/{total} 챕터)")
+        else:
+            print("[!] 프로젝트 파일: 없음  (새로 생성 예정)")
+        print("\n상태:", "정상" if ok else "일부 문제 발견 - 위 항목을 확인하세요")
+        if not ok:
+            sys.exit(1)
 
 
 if __name__ == "__main__":
